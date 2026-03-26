@@ -78,7 +78,7 @@
         }
         .watermark i { color: #ff3b6f; margin-right: 4px; }
         
-        /* باقي العناصر (مختصرة لكن كاملة) */
+        /* باقي العناصر */
         .video-info { position: absolute; bottom: 100px; left: 16px; right: 80px; z-index: 20; }
         .author-info { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
         .author-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #ff3b6f, #ff6b6b); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid white; overflow: hidden; }
@@ -217,25 +217,34 @@
 
     <div id="copyToast" class="copy-toast">✅ تم نسخ الرابط</div>
 
-    <!-- اللوحات -->
+    <!-- لوحة المشاركة -->
     <div id="sharePanel" class="share-panel"><div class="panel-header"><h3>مشاركة</h3><button class="close-btn" onclick="closeShare()"><i class="fas fa-times"></i></button></div><div class="share-option" onclick="copyLink()"><i class="fas fa-link text-blue-400"></i><span>نسخ الرابط</span></div><div class="share-option" onclick="shareToWhatsApp()"><i class="fab fa-whatsapp text-green-500"></i><span>WhatsApp</span></div><div class="share-option" onclick="shareToTelegram()"><i class="fab fa-telegram text-blue-400"></i><span>Telegram</span></div><div class="share-option" onclick="downloadVideo()"><i class="fas fa-download"></i><span>تنزيل</span></div></div>
 
+    <!-- لوحة التعليقات -->
     <div id="commentsPanel" class="comments-panel"><div class="panel-header"><h3>التعليقات</h3><button class="close-btn" onclick="closeComments()"><i class="fas fa-times"></i></button></div><div id="commentsList" class="p-4"></div><div class="add-comment p-4"><input type="text" id="commentInput" placeholder="أضف تعليقاً..."><button onclick="addComment()">نشر</button></div></div>
 
+    <!-- لوحة البحث -->
     <div id="searchPanel" class="search-panel"><div class="panel-header"><h3>بحث</h3><button class="close-btn" onclick="closeSearch()"><i class="fas fa-times"></i></button></div><div class="p-4"><input type="text" id="searchInput" class="search-input" placeholder="بحث..." onkeyup="searchAll()"></div><div id="searchResults" class="p-4"></div></div>
 
+    <!-- لوحة الأصوات -->
     <div id="soundsPanel" class="sounds-panel"><div class="panel-header"><h3>الأصوات الشائعة</h3><button class="close-btn" onclick="closeSounds()"><i class="fas fa-times"></i></button></div><div id="soundsList" class="p-2"></div></div>
 
+    <!-- لوحة الإشعارات -->
     <div id="notificationsPanel" class="notifications-panel"><div class="panel-header"><h3>الإشعارات</h3><button class="close-btn" onclick="closeNotifications()"><i class="fas fa-times"></i></button></div><div id="notificationsList" class="p-4"></div></div>
 
+    <!-- لوحة الرفع -->
     <div id="uploadPanel" class="upload-panel"><div class="panel-header"><h3><i class="fas fa-upload ml-2"></i> رفع فيديو جديد</h3><button class="close-btn" onclick="closeUploadPanel()"><i class="fas fa-times"></i></button></div><div class="upload-content"><div class="video-preview-area" onclick="document.getElementById('videoFileInput').click()"><div class="preview-placeholder"><i class="fas fa-cloud-upload-alt"></i><p>اضغط لاختيار فيديو</p><span class="preview-hint">MP4, MOV, WebM - حتى 100MB</span></div><video id="videoPreview" class="video-preview" controls></video></div><input type="file" id="videoFileInput" accept="video/*" style="display:none" onchange="selectVideoFile(this)"><div class="upload-form"><div class="form-group"><label><i class="fas fa-pen"></i> وصف الفيديو</label><textarea id="videoDescription" rows="3" placeholder="اكتب وصفاً للفيديو... استخدم # للهاشتاقات" oninput="showHashtagSuggestions()"></textarea><div id="hashtagSuggestions" class="hashtag-suggestions"></div></div><div class="form-group"><label><i class="fas fa-music"></i> اسم المقطع / الصوت</label><input type="text" id="videoMusic" placeholder="مثال: Original Sound - أو اسم أغنية" oninput="showMusicSuggestions()"><div id="musicSuggestions" class="music-suggestions"></div></div><div class="form-row"><div class="form-group half"><label><i class="fas fa-users"></i> الرؤية</label><select id="videoVisibility"><option value="public">عام (الكل يشاهده)</option><option value="private">خاص (المتابعون فقط)</option></select></div><div class="form-group half"><label><i class="fas fa-comment"></i> التعليقات</label><select id="videoComments"><option value="all">الكل يمكنه التعليق</option><option value="followers">المتابعون فقط</option><option value="none">تعطيل التعليقات</option></select></div></div><div class="upload-progress" id="uploadProgressBar" style="display:none"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">0%</div></div><div class="upload-actions"><button class="cancel-upload-btn" onclick="closeUploadPanel()">إلغاء</button><button class="upload-submit-btn" id="uploadSubmitBtn" onclick="uploadVideoWithDetails()">رفع الفيديو</button></div><div id="uploadStatus" class="upload-status"></div></div></div></div>
 
+    <!-- صفحة الملف الشخصي -->
     <div id="profilePanel" class="profile-panel"><div class="back-btn" onclick="closeProfile()"><i class="fas fa-arrow-right"></i></div><div class="profile-header"><div class="profile-avatar-large" id="profileAvatarDisplay" onclick="changeAvatar()">👤</div><h2 id="profileNameDisplay" class="mt-4 text-xl font-bold"></h2><p id="profileBioDisplay" class="text-sm opacity-70 mt-1"></p><div class="profile-stats"><div class="stat"><div class="stat-number" id="profileFollowing">0</div><div class="stat-label">يتابع</div></div><div class="stat"><div class="stat-number" id="profileFollowers">0</div><div class="stat-label">متابع</div></div><div class="stat"><div class="stat-number" id="profileLikes">0</div><div class="stat-label">إجمالي الإعجابات</div></div></div><div id="profileActions"></div></div><div class="p-4"><h4 class="mb-3 font-bold">فيديوهاتي</h4><div id="profileVideosList" class="videos-grid"></div></div></div>
 
+    <!-- تعديل الملف الشخصي -->
     <div id="editProfilePanel" class="edit-profile-panel"><div class="panel-header"><h3>تعديل الملف الشخصي</h3><button class="close-btn" onclick="closeEditProfile()"><i class="fas fa-times"></i></button></div><div class="avatar-upload text-center p-6" onclick="changeAvatar()"><div class="profile-avatar-large" id="editAvatarDisplay">👤</div><p class="text-xs text-gray-400 mt-2">اضغط لتغيير الصورة</p></div><input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)"><div class="p-4"><input type="text" id="editUsername" class="edit-input" placeholder="اسم المستخدم"><textarea id="editBio" class="edit-input mt-3" rows="3" placeholder="السيرة الذاتية"></textarea><button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button></div></div>
 
+    <!-- الدردشة الخاصة -->
     <div id="privateChatPanel" class="private-chat-panel"><div class="panel-header"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gradient-to-r from-[#ff3b6f] to-[#ff6b6b] flex items-center justify-center" id="chatAvatarDisplay">👤</div><h3 id="chatUserName">محادثة خاصة</h3></div><button class="close-btn" onclick="closePrivateChat()"><i class="fas fa-times"></i></button></div><div id="privateMessagesList" class="private-messages-list"></div><div class="private-chat-input"><div class="chat-attachment" onclick="document.getElementById('chatImageInput').click()"><i class="fas fa-image"></i></div><input type="file" id="chatImageInput" accept="image/*" style="display:none" onchange="sendChatImage(this)"><input type="text" id="privateMessageInput" placeholder="اكتب رسالة..." class="flex-1"><button onclick="sendPrivateMessage()" class="send-btn"><i class="fas fa-paper-plane"></i></button></div></div>
 
+    <!-- قائمة المحادثات -->
     <div id="conversationsPanel" class="conversations-panel"><div class="panel-header"><h3>المحادثات الخاصة</h3><button class="close-btn" onclick="closeConversations()"><i class="fas fa-times"></i></button></div><div id="conversationsList" class="conversations-list"></div></div>
 </div>
 
