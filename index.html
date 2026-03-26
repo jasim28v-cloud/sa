@@ -21,7 +21,7 @@
             height: 100vh;
         }
         
-        /* شاشة تسجيل الدخول – تصميم نيون */
+        /* شاشة تسجيل الدخول */
         .login-screen {
             position: fixed;
             inset: 0;
@@ -112,7 +112,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .version { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 24px; }
         
-        /* التطبيق الرئيسي – تصميم حديث */
+        /* التطبيق الرئيسي */
         #mainApp { display: none; height: 100vh; background: #0a0a0a; position: relative; overflow-y: auto; }
         
         /* شريط علوي */
@@ -185,7 +185,7 @@
             text-overflow: ellipsis;
         }
         
-        /* المنشورات */
+        /* المنشورات – فيديو طولي 9:16 */
         .feed-container { padding: 16px 0 80px; }
         .post-card {
             background: #111;
@@ -226,15 +226,21 @@
             font-size: 11px;
             cursor: pointer;
         }
+        /* حاوية الفيديو الطولي 9:16 */
         .media-container {
             position: relative;
             background: #000;
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
         .post-media {
             width: 100%;
-            max-height: 500px;
+            height: 100%;
             object-fit: cover;
-            display: block;
         }
         /* علامة مائية على الفيديوهات */
         .video-watermark {
@@ -363,25 +369,31 @@
             color: white;
         }
         
-        /* الملف الشخصي */
-        .profile-header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(6, 182, 212, 0.2));
+        /* الملف الشخصي مع غلاف وصورة */
+        .profile-cover {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ec489a, #06b6d4);
+            object-fit: cover;
+        }
+        .profile-info {
+            position: relative;
+            padding: 0 20px 20px;
         }
         .profile-avatar-large {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #ec489a, #06b6d4);
+            border: 3px solid white;
+            margin-top: -50px;
+            background: #1a1a2a;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             cursor: pointer;
-            border: 3px solid white;
         }
+        .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
         .profile-stats {
             display: flex;
             justify-content: center;
@@ -391,6 +403,27 @@
         .stat { text-align: center; }
         .stat-number { font-size: 22px; font-weight: bold; }
         .stat-label { font-size: 12px; opacity: 0.6; }
+        .profile-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        .profile-btn {
+            background: rgba(236, 72, 153, 0.2);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .profile-btn.primary {
+            background: linear-gradient(135deg, #ec489a, #06b6d4);
+            border: none;
+            color: white;
+        }
         .posts-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -432,6 +465,12 @@
         .message-bubble.sent {
             background: linear-gradient(135deg, #ec489a, #06b6d4);
             color: white;
+        }
+        .message-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 16px;
+            cursor: pointer;
         }
         .chat-input {
             display: flex;
@@ -567,7 +606,7 @@
             <button onclick="register()">إنشاء حساب</button>
             <div id="regMsg" class="text-red-500 text-sm text-center mt-3"></div>
         </div>
-        <div class="version">الإصدار 3.1 | مارس 2026</div>
+        <div class="version">الإصدار 3.2 | مارس 2026</div>
     </div>
 </div>
 
@@ -623,19 +662,20 @@
         <div id="notificationsList" class="p-4"></div>
     </div>
 
-    <!-- صفحة الملف الشخصي -->
+    <!-- صفحة الملف الشخصي مع غلاف -->
     <div id="profilePanel" class="panel">
         <div class="panel-header"><button class="close-btn" onclick="closeProfile()"><i class="fas fa-arrow-right"></i></button><h3>الملف الشخصي</h3><div></div></div>
-        <div class="profile-header">
+        <div id="profileCover" class="profile-cover" style="background: linear-gradient(135deg, #ec489a, #06b6d4);"></div>
+        <div class="profile-info">
             <div class="profile-avatar-large" id="profileAvatarDisplay" onclick="changeAvatar()">👤</div>
-            <h2 id="profileNameDisplay" class="mt-3"></h2>
-            <p id="profileBioDisplay" class="text-sm text-gray-400"></p>
+            <h2 id="profileNameDisplay" class="mt-3 text-center"></h2>
+            <p id="profileBioDisplay" class="text-sm text-gray-400 text-center"></p>
             <div class="profile-stats">
                 <div class="stat"><div class="stat-number" id="profilePosts">0</div><div class="stat-label">منشورات</div></div>
                 <div class="stat"><div class="stat-number" id="profileFollowers">0</div><div class="stat-label">متابع</div></div>
                 <div class="stat"><div class="stat-number" id="profileFollowing">0</div><div class="stat-label">يتابع</div></div>
             </div>
-            <div id="profileActions"></div>
+            <div id="profileActions" class="profile-buttons"></div>
         </div>
         <div id="profilePostsGrid" class="posts-grid"></div>
     </div>
@@ -658,12 +698,25 @@
         <div id="conversationsList" class="p-2"></div>
     </div>
 
-    <!-- لوحة تعديل الملف الشخصي -->
+    <!-- لوحة تعديل الملف الشخصي (مع إمكانية رفع غلاف) -->
     <div id="editProfilePanel" class="panel">
         <div class="panel-header"><h3>تعديل الملف الشخصي</h3><button class="close-btn" onclick="closeEditProfile()"><i class="fas fa-times"></i></button></div>
-        <div class="avatar-upload text-center p-6" onclick="changeAvatar()"><div class="profile-avatar-large" id="editAvatarDisplay">👤</div><p class="text-xs text-gray-400 mt-2">اضغط لتغيير الصورة</p></div>
-        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-        <div class="p-4"><input type="text" id="editUsername" class="edit-input" placeholder="اسم المستخدم"><textarea id="editBio" class="edit-input" rows="3" placeholder="السيرة الذاتية"></textarea><button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button></div>
+        <div class="p-4">
+            <div class="mb-4 text-center">
+                <label class="block text-sm mb-2">صورة الغلاف</label>
+                <div class="w-full h-40 bg-gray-800 rounded-xl overflow-hidden cursor-pointer" onclick="document.getElementById('coverInput').click()">
+                    <img id="coverPreview" class="w-full h-full object-cover" src="">
+                </div>
+                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="uploadCover(this)">
+            </div>
+            <div class="text-center mb-4">
+                <div class="profile-avatar-large mx-auto" id="editAvatarDisplay" onclick="changeAvatar()">👤</div>
+                <p class="text-xs text-gray-400 mt-2">اضغط لتغيير الصورة الشخصية</p>
+            </div>
+            <input type="text" id="editUsername" class="edit-input" placeholder="اسم المستخدم">
+            <textarea id="editBio" class="edit-input" rows="3" placeholder="السيرة الذاتية"></textarea>
+            <button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button>
+        </div>
     </div>
 </div>
 
