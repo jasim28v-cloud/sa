@@ -47,7 +47,7 @@ async function register() {
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await db.ref(`users/${userCredential.user.uid}`).set({
-            username, email, bio: '', avatarUrl: '', followers: {}, following: {}, createdAt: Date.now()
+            username, email, bio: '', avatarUrl: '', coverUrl: '', followers: {}, following: {}, createdAt: Date.now()
         });
         msg.innerText = '';
     } catch (error) {
@@ -115,7 +115,7 @@ function addHashtags(text) {
 }
 function searchHashtag(tag) { document.getElementById('searchInput').value = '#' + tag; openSearch(); searchAll(); }
 
-// ========== عرض المنشورات (جميع المنشورات، بدون تصفية) ==========
+// ========== عرض المنشورات (جميع المنشورات) ==========
 db.ref('posts').on('value', (s) => {
     const data = s.val();
     if (!data) { allPosts = []; renderFeed(); return; }
@@ -130,14 +130,20 @@ function renderFeed() {
     if (!container) return;
     container.innerHTML = '';
     if (allPosts.length === 0) { container.innerHTML = '<div class="loading">✨ لا توجد منشورات بعد</div>'; return; }
-    // عرض جميع المنشورات لجميع المستخدمين (لا نستخدم تصفية)
     allPosts.forEach(post => {
         const user = allUsers[post.sender] || { username: post.senderName || 'user', avatarUrl: '' };
         const isLiked = post.likedBy && post.likedBy[currentUser?.uid];
         const isFollowing = currentUserData?.following && currentUserData.following[post.sender];
-        const mediaHtml = post.mediaType === 'video' 
-            ? `<div class="media-container"><video class="post-media" controls><source src="${post.mediaUrl}" type="video/mp4"></video><div class="video-watermark"><i class="fas fa-heart"></i> instagrami</div></div>`
-            : `<img class="post-media" src="${post.mediaUrl}" alt="post">`;
+        let mediaHtml;
+        if (post.mediaType === 'video') {
+            mediaHtml = `
+                <div class="media-container">
+                    <video class="post-media" controls><source src="${post.mediaUrl}" type="video/mp4"></video>
+                    <div class="video-watermark"><i class="fas fa-heart"></i> instagrami</div>
+                </div>`;
+        } else {
+            mediaHtml = `<img class="post-media" src="${post.mediaUrl}" alt="post">`;
+        }
         const caption = addHashtags(post.caption || '');
         const commentsCount = post.comments ? Object.keys(post.comments).length : 0;
         const div = document.createElement('div');
@@ -304,7 +310,7 @@ function searchAll() {
     `;
 }
 
-// ========== الملف الشخصي ==========
+// ========== الملف الشخصي مع غلاف ==========
 async function viewProfile(userId) {
     if (!userId) return;
     await loadProfileData(userId);
@@ -314,7 +320,13 @@ async function loadProfileData(userId) {
     const userSnap = await db.ref(`users/${userId}`).get();
     const user = userSnap.val();
     if (!user) return;
-    document.getElementById('profileAvatarDisplay').innerHTML = user.avatarUrl ? `<img src="${user.avatarUrl}">` : (user.username?.charAt(0) || '👤');
+    // صورة الغلاف
+    const coverEl = document.getElementById('profileCover');
+    if (user.coverUrl) coverEl.style.background = `url(${user.coverUrl}) center/cover`;
+    else coverEl.style.background = 'linear-gradient(135deg, #ec489a, #06b6d4)';
+    // صورة المستخدم
+    const avatarEl = document.getElementById('profileAvatarDisplay');
+    avatarEl.innerHTML = user.avatarUrl ? `<img src="${user.avatarUrl}">` : (user.username?.charAt(0) || '👤');
     document.getElementById('profileNameDisplay').innerText = user.username;
     document.getElementById('profileBioDisplay').innerText = user.bio || '';
     const userPosts = allPosts.filter(p => p.sender === userId);
@@ -326,19 +338,32 @@ async function loadProfileData(userId) {
     const actions = document.getElementById('profileActions');
     actions.innerHTML = '';
     if (userId === currentUser?.uid) {
-        actions.innerHTML = `<button class="bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-2 rounded-full" onclick="openEditProfile()">تعديل الملف</button><button class="border border-gray-600 px-6 py-2 rounded-full ml-2" onclick="logout()">تسجيل خروج</button>`;
+        actions.innerHTML = `<button class="profile-btn primary" onclick="openEditProfile()">تعديل الملف</button><button class="profile-btn" onclick="logout()">تسجيل خروج</button>`;
         if (isAdmin) {
             const adminPanel = await renderAdminPanel();
             actions.innerHTML += adminPanel;
         }
     } else {
         const isFollowing = currentUserData?.following && currentUserData.following[userId];
-        actions.innerHTML = `<button class="bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-2 rounded-full" onclick="toggleFollowProfile('${userId}', this)">${isFollowing ? 'متابع' : 'متابعة'}</button>`;
+        actions.innerHTML = `
+            <button class="profile-btn primary" onclick="toggleFollowProfile('${userId}', this)">${isFollowing ? 'متابع' : 'متابعة'}</button>
+            <button class="profile-btn" onclick="openPrivateChat('${userId}')"><i class="fas fa-envelope ml-1"></i> مراسلة</button>
+        `;
     }
 }
 function openMyProfile() { if (currentUser) viewProfile(currentUser.uid); }
 function closeProfile() { document.getElementById('profilePanel').classList.remove('open'); }
-function openEditProfile() { document.getElementById('editProfilePanel').classList.add('open'); }
+function openEditProfile() { 
+    document.getElementById('editUsername').value = currentUserData?.username || '';
+    document.getElementById('editBio').value = currentUserData?.bio || '';
+    const editAvatar = document.getElementById('editAvatarDisplay');
+    if (currentUserData?.avatarUrl) editAvatar.innerHTML = `<img src="${currentUserData.avatarUrl}">`;
+    else editAvatar.innerHTML = currentUserData?.username?.charAt(0) || '👤';
+    const coverPreview = document.getElementById('coverPreview');
+    if (currentUserData?.coverUrl) coverPreview.src = currentUserData.coverUrl;
+    else coverPreview.src = '';
+    document.getElementById('editProfilePanel').classList.add('open');
+}
 function closeEditProfile() { document.getElementById('editProfilePanel').classList.remove('open'); }
 async function saveProfile() {
     const newUsername = document.getElementById('editUsername').value;
@@ -360,6 +385,18 @@ async function uploadAvatar(input) {
     currentUserData.avatarUrl = data.secure_url;
     if (document.getElementById('profilePanel').classList.contains('open')) await loadProfileData(currentUser.uid);
     renderFeed();
+}
+async function uploadCover(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+    const data = await res.json();
+    await db.ref(`users/${currentUser.uid}/coverUrl`).set(data.secure_url);
+    currentUserData.coverUrl = data.secure_url;
+    const preview = document.getElementById('coverPreview');
+    if (preview) preview.src = data.secure_url;
+    if (document.getElementById('profilePanel').classList.contains('open')) await loadProfileData(currentUser.uid);
 }
 
 // ========== المتابعة ==========
