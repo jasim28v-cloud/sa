@@ -13,10 +13,6 @@ let allSounds = {};
 let isMuted = true;
 let viewingProfileUserId = null;
 let currentFeed = 'forYou';
-let currentChatUserId = null;
-let selectedVideoFile = null;
-let popularHashtags = ['تيك_توك', 'ترند', 'اكسبلور', 'فن', 'موسيقى', 'ضحك', 'رياضة', 'طبخ', 'سفر', 'تحدي'];
-let popularMusics = ['Original Sound', 'موسيقى هادئة', 'ريمكس ترند', 'أغنية جديدة', 'تيك توك ريمكس'];
 
 // ========== دوال المصادقة ==========
 function switchAuth(type) {
@@ -86,7 +82,7 @@ async function renderAdminPanel() {
     const bannedUsers = Object.values(users).filter(u => u.banned).length;
     return `
         <div class="admin-panel-section">
-            <h3 style="color:#ff3b6f;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-shield-alt"></i> لوحة تحكم الأدمن</h3>
+            <h3 style="color:#fe2c55;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-shield-alt"></i> لوحة تحكم الأدمن</h3>
             <div class="admin-stats">
                 <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(users).length}</div><div class="admin-stat-label">مستخدمين</div></div>
                 <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(videos).length}</div><div class="admin-stat-label">فيديوهات</div></div>
@@ -97,7 +93,7 @@ async function renderAdminPanel() {
                 <div class="admin-item"><div class="admin-item-info"><div class="admin-item-avatar"><i class="fas fa-video"></i></div><div class="admin-item-text"><div class="admin-item-name">${v.description?.substring(0, 35) || 'فيديو'}</div><div class="admin-item-email">@${v.senderName || 'user'}</div></div></div><button class="admin-delete-btn" onclick="adminDeleteVideo('${id}')">حذف</button></div>
             `).join('')}</div>${Object.keys(videos).length > 15 ? `<p class="text-center text-xs opacity-60 mt-2">+${Object.keys(videos).length - 15} فيديو آخر</p>` : ''}</div>
             <div><h4 style="font-weight:bold;margin-bottom:12px">👥 إدارة المستخدمين</h4><div class="admin-list">${Object.entries(users).slice(0, 15).map(([uid, u]) => `
-                <div class="admin-item"><div class="admin-item-info"><div class="admin-item-avatar">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username?.charAt(0) || 'U')}</div><div class="admin-item-text"><div class="admin-item-name">@${u.username} ${u.banned ? '<span style="background:#ff3b6f;padding:2px 6px;border-radius:12px;font-size:9px;margin-left:5px">محظور</span>' : ''}</div><div class="admin-item-email">${u.email || ''}</div></div></div><div>${!u.banned ? `<button class="admin-ban-btn" onclick="adminBanUser('${uid}')">حظر</button>` : `<button class="admin-ban-btn" style="background:rgba(76,175,80,0.3);color:#4caf50" onclick="adminUnbanUser('${uid}')">إلغاء الحظر</button>`}<button class="admin-delete-btn" onclick="adminDeleteUser('${uid}')">حذف</button></div></div>
+                <div class="admin-item"><div class="admin-item-info"><div class="admin-item-avatar">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username?.charAt(0) || 'U')}</div><div class="admin-item-text"><div class="admin-item-name">@${u.username} ${u.banned ? '<span style="background:#fe2c55;padding:2px 6px;border-radius:12px;font-size:9px;margin-left:5px">محظور</span>' : ''}</div><div class="admin-item-email">${u.email || ''}</div></div></div><div>${!u.banned ? `<button class="admin-ban-btn" onclick="adminBanUser('${uid}')">حظر</button>` : `<button class="admin-ban-btn" style="background:rgba(76,175,80,0.3);color:#4caf50" onclick="adminUnbanUser('${uid}')">إلغاء الحظر</button>`}<button class="admin-delete-btn" onclick="adminDeleteUser('${uid}')">حذف</button></div></div>
             `).join('')}</div></div>
         </div>
     `;
@@ -116,7 +112,7 @@ db.ref('users').on('value', s => { allUsers = s.val() || {}; });
 function addHashtags(text) { if (!text) return ''; return text.replace(/#(\w+)/g, '<span class="hashtag" onclick="searchHashtag(\'$1\')">#$1</span>'); }
 function searchHashtag(tag) { document.getElementById('searchInput').value = '#' + tag; openSearch(); searchAll(); }
 
-// ========== عرض الفيديوهات مع العلامة المائية ==========
+// ========== عرض الفيديوهات ==========
 db.ref('videos').on('value', (s) => {
     const data = s.val();
     if (!data) { allVideos = []; renderVideos(); return; }
@@ -153,11 +149,6 @@ function renderVideos() {
                 <button class="side-btn" onclick="openShare('${video.url}')"><i class="fas fa-share"></i></button>
             </div>
         `;
-        const watermark = document.createElement('div');
-        watermark.className = 'watermark';
-        watermark.innerHTML = '<i class="fas fa-heart"></i> Tiktoki';
-        div.appendChild(watermark);
-        
         const videoEl = div.querySelector('video');
         videoEl.addEventListener('dblclick', (e) => { e.stopPropagation(); const likeBtn = div.querySelector('.like-btn'); if (likeBtn) { toggleLike(video.id, likeBtn); showHeartAnimation(e.clientX, e.clientY); } });
         container.appendChild(div);
@@ -180,14 +171,124 @@ async function openComments(videoId) { currentVideoId = videoId; const panel = d
 function closeComments() { document.getElementById('commentsPanel').classList.remove('open'); }
 async function addComment() { const input = document.getElementById('commentInput'); if (!input.value.trim() || !currentVideoId) return; await db.ref(`videos/${currentVideoId}/comments`).push({ userId: currentUser.uid, username: currentUserData?.username, text: input.value, timestamp: Date.now() }); input.value = ''; openComments(currentVideoId); }
 
-// ========== المشاركة ==========
+// ========== المشاركة مع علامة مائية حقيقية ==========
 function openShare(url) { currentShareUrl = url; document.getElementById('sharePanel').classList.add('open'); }
 function closeShare() { document.getElementById('sharePanel').classList.remove('open'); }
 function copyLink() { navigator.clipboard.writeText(currentShareUrl); showToast(); closeShare(); }
 function shareToWhatsApp() { window.open(`https://wa.me/?text=${encodeURIComponent(currentShareUrl)}`, '_blank'); closeShare(); }
 function shareToTelegram() { window.open(`https://t.me/share/url?url=${encodeURIComponent(currentShareUrl)}`, '_blank'); closeShare(); }
-function downloadVideo() { window.open(currentShareUrl, '_blank'); closeShare(); }
-function showToast() { const t = document.getElementById('copyToast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+
+// دالة التنزيل مع العلامة المائية الحقيقية
+async function downloadVideoWithWatermark(videoUrl) {
+    if (!videoUrl) return;
+    const toast = document.getElementById('copyToast');
+    toast.innerText = '⏳ جاري تحضير الفيديو مع العلامة المائية...';
+    toast.classList.add('show');
+    
+    try {
+        // جلب الفيديو كـ blob
+        const response = await fetch(videoUrl);
+        const blob = await response.blob();
+        const videoBlob = new Blob([blob], { type: 'video/mp4' });
+        const videoURL = URL.createObjectURL(videoBlob);
+        
+        // إنشاء عنصر video مؤقت لرسم الإطارات
+        const videoElement = document.createElement('video');
+        videoElement.src = videoURL;
+        videoElement.crossOrigin = "Anonymous";
+        await new Promise((resolve) => {
+            videoElement.addEventListener('loadeddata', resolve);
+            videoElement.load();
+        });
+        
+        const duration = videoElement.duration;
+        const width = videoElement.videoWidth;
+        const height = videoElement.videoHeight;
+        
+        // إنشاء canvas للرسم
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        // إعداد MediaRecorder لتسجيل الإطارات
+        const stream = canvas.captureStream(30);
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        let chunks = [];
+        
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const finalBlob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(finalBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tiktoki_video_with_watermark.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.innerText = '✅ تم التحميل بنجاح مع العلامة المائية';
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+        
+        mediaRecorder.start();
+        
+        // رسم كل إطار مع العلامة المائية
+        videoElement.currentTime = 0;
+        let lastTime = -1;
+        
+        function drawFrame() {
+            if (videoElement.paused || videoElement.ended) return;
+            const currentTime = videoElement.currentTime;
+            if (Math.floor(currentTime * 30) !== lastTime) {
+                lastTime = Math.floor(currentTime * 30);
+                ctx.drawImage(videoElement, 0, 0, width, height);
+                // رسم العلامة المائية
+                ctx.font = `bold ${Math.floor(width / 20)}px "Segoe UI", system-ui`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 5;
+                ctx.fillText('tiktoki ❤️', width - (width / 4), height - 20);
+                ctx.fillStyle = '#fe2c55';
+                ctx.fillText('❤️', width - (width / 4) + 100, height - 20);
+                ctx.shadowBlur = 0;
+            }
+            requestAnimationFrame(drawFrame);
+        }
+        
+        videoElement.play();
+        drawFrame();
+        
+        // إنهاء التسجيل بعد انتهاء الفيديو
+        videoElement.onended = () => {
+            mediaRecorder.stop();
+            videoElement.pause();
+            URL.revokeObjectURL(videoURL);
+        };
+        
+        // إذا كان الفيديو قصيراً جداً، نوقف بعد 5 ثواني كحد أقصى
+        setTimeout(() => {
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                videoElement.pause();
+            }
+        }, (duration * 1000) + 1000);
+        
+    } catch (err) {
+        console.error('Watermark error:', err);
+        toast.innerText = '❌ فشل إضافة العلامة المائية، جاري التحميل العادي...';
+        setTimeout(() => toast.classList.remove('show'), 2000);
+        // fallback: تحميل مباشر
+        const a = document.createElement('a');
+        a.href = videoUrl;
+        a.download = 'tiktoki_video.mp4';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+}
+
+function showToast() { const t = document.getElementById('copyToast'); t.innerText = '✅ تم نسخ الرابط'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 
 // ========== الإشعارات ==========
 async function addNotification(targetUserId, type, fromUserId) { if (targetUserId === fromUserId) return; const fromUser = allUsers[fromUserId] || { username: 'مستخدم' }; const messages = { like: 'أعجب بفيديو الخاص بك', comment: 'علق على فيديو الخاص بك', follow: 'بدأ بمتابعتك', unfollow: 'توقف عن متابعتك' }; await db.ref(`notifications/${targetUserId}`).push({ type, fromUserId, fromUsername: fromUser.username, message: messages[type], timestamp: Date.now(), read: false }); }
@@ -197,7 +298,7 @@ function closeNotifications() { document.getElementById('notificationsPanel').cl
 // ========== البحث ==========
 function openSearch() { document.getElementById('searchPanel').classList.add('open'); }
 function closeSearch() { document.getElementById('searchPanel').classList.remove('open'); }
-function searchAll() { const query = document.getElementById('searchInput').value.toLowerCase(); const resultsDiv = document.getElementById('searchResults'); if (!query) { resultsDiv.innerHTML = ''; return; } const users = Object.values(allUsers).filter(u => u.username.toLowerCase().includes(query)); const videos = allVideos.filter(v => v.description?.toLowerCase().includes(query) || v.music?.toLowerCase().includes(query)); const hashtags = [...new Set(allVideos.flatMap(v => (v.description?.match(/#\w+/g) || []).filter(h => h.toLowerCase().includes(query))))]; resultsDiv.innerHTML = `${users.length ? `<div class="mb-5"><h4 class="text-sm opacity-60 mb-2">👥 مستخدمين</h4>${users.map(u => `<div class="search-result" onclick="viewProfile('${u.uid}')"><div class="search-avatar">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username.charAt(0)?.toUpperCase() || '👤')}</div><div>@${u.username}</div></div>`).join('')}</div>` : ''}${hashtags.length ? `<div class="mb-5"><h4 class="text-sm opacity-60 mb-2"># هاشتاقات</h4>${hashtags.map(h => `<div class="search-result" onclick="searchHashtag('${h.substring(1)}')"><i class="fas fa-hashtag text-[#ff3b6f] w-8 text-xl"></i><div>${h}</div></div>`).join('')}</div>` : ''}${videos.length ? `<div><h4 class="text-sm opacity-60 mb-2">🎬 فيديوهات</h4>${videos.map(v => `<div class="search-result" onclick="playVideo('${v.url}')"><i class="fas fa-video w-8 text-xl"></i><div>${(v.description || 'فيديو').substring(0, 40)}</div></div>`).join('')}</div>` : ''}`; }
+function searchAll() { const query = document.getElementById('searchInput').value.toLowerCase(); const resultsDiv = document.getElementById('searchResults'); if (!query) { resultsDiv.innerHTML = ''; return; } const users = Object.values(allUsers).filter(u => u.username.toLowerCase().includes(query)); const videos = allVideos.filter(v => v.description?.toLowerCase().includes(query) || v.music?.toLowerCase().includes(query)); const hashtags = [...new Set(allVideos.flatMap(v => (v.description?.match(/#\w+/g) || []).filter(h => h.toLowerCase().includes(query))))]; resultsDiv.innerHTML = `${users.length ? `<div class="mb-5"><h4 class="text-sm opacity-60 mb-2">👥 مستخدمين</h4>${users.map(u => `<div class="search-result" onclick="viewProfile('${u.uid}')"><div class="search-avatar">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username.charAt(0)?.toUpperCase() || '👤')}</div><div>@${u.username}</div></div>`).join('')}</div>` : ''}${hashtags.length ? `<div class="mb-5"><h4 class="text-sm opacity-60 mb-2"># هاشتاقات</h4>${hashtags.map(h => `<div class="search-result" onclick="searchHashtag('${h.substring(1)}')"><i class="fas fa-hashtag text-[#fe2c55] w-8 text-xl"></i><div>${h}</div></div>`).join('')}</div>` : ''}${videos.length ? `<div><h4 class="text-sm opacity-60 mb-2">🎬 فيديوهات</h4>${videos.map(v => `<div class="search-result" onclick="playVideo('${v.url}')"><i class="fas fa-video w-8 text-xl"></i><div>${(v.description || 'فيديو').substring(0, 40)}</div></div>`).join('')}</div>` : ''}`; }
 
 // ========== الأصوات ==========
 function openSounds() { document.getElementById('soundsPanel').classList.add('open'); }
@@ -228,18 +329,114 @@ async function uploadAvatar(input) { const file = input.files[0]; if (!file) ret
 function playVideo(url) { window.open(url, '_blank'); }
 
 // ========== الدردشة الخاصة ==========
-async function openConversations() { const panel = document.getElementById('conversationsPanel'); const container = document.getElementById('conversationsList'); const userId = currentUser.uid; const convSnap = await db.ref(`private_chats/${userId}`).once('value'); const conversations = convSnap.val() || {}; container.innerHTML = ''; for (const [otherId, convData] of Object.entries(conversations)) { const otherUser = allUsers[otherId]; if (!otherUser) continue; const lastMsg = convData.lastMessage || ''; container.innerHTML += `<div class="conversation-item" onclick="openPrivateChat('${otherId}')"><div class="conversation-avatar">${otherUser.avatarUrl ? `<img src="${otherUser.avatarUrl}">` : (otherUser.username?.charAt(0) || '👤')}</div><div class="conversation-info"><div class="conversation-name">@${otherUser.username}</div><div class="conversation-last-msg">${lastMsg.substring(0, 30)}</div></div></div>`; } if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد محادثات بعد</div>'; panel.classList.add('open'); }
-function closeConversations() { document.getElementById('conversationsPanel').classList.remove('open'); }
-async function openPrivateChat(otherUserId) { currentChatUserId = otherUserId; const user = allUsers[otherUserId]; document.getElementById('chatUserName').innerText = `@${user?.username || 'مستخدم'}`; document.getElementById('chatAvatarDisplay').innerHTML = user?.avatarUrl ? `<img src="${user.avatarUrl}" class="w-full h-full object-cover rounded-full">` : (user?.username?.charAt(0) || '👤'); await loadPrivateMessages(otherUserId); document.getElementById('privateChatPanel').classList.add('open'); closeConversations(); }
-function closePrivateChat() { document.getElementById('privateChatPanel').classList.remove('open'); currentChatUserId = null; }
-async function loadPrivateMessages(otherUserId) { const container = document.getElementById('privateMessagesList'); container.innerHTML = '<div class="text-center text-gray-400 py-10">جاري التحميل...</div>'; const chatId = getChatId(currentUser.uid, otherUserId); const messagesSnap = await db.ref(`private_messages/${chatId}`).once('value'); const messages = messagesSnap.val() || {}; container.innerHTML = ''; const sortedMessages = Object.entries(messages).sort((a, b) => a[1].timestamp - b[1].timestamp); for (const [msgId, msg] of sortedMessages) { const isSent = msg.senderId === currentUser.uid; const time = new Date(msg.timestamp).toLocaleTimeString(); let content = ''; if (msg.type === 'text') content = `<div class="message-bubble ${isSent ? 'sent' : 'received'}">${msg.text}</div>`; else if (msg.type === 'image') content = `<img src="${msg.imageUrl}" class="message-image" onclick="window.open('${msg.imageUrl}')">`; container.innerHTML += `<div class="private-message ${isSent ? 'sent' : 'received'}"><div class="message-content">${content}<div class="message-time">${time}</div></div></div>`; } if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد رسائل بعد</div>'; container.scrollTop = container.scrollHeight; }
-async function sendPrivateMessage() { const input = document.getElementById('privateMessageInput'); const text = input.value.trim(); if (!text || !currentChatUserId) return; const chatId = getChatId(currentUser.uid, currentChatUserId); const message = { senderId: currentUser.uid, senderName: currentUserData?.username, text: text, type: 'text', timestamp: Date.now(), read: false }; await db.ref(`private_messages/${chatId}`).push(message); await db.ref(`private_chats/${currentUser.uid}/${currentChatUserId}`).set({ lastMessage: text, lastTimestamp: Date.now(), withUser: currentChatUserId }); await db.ref(`private_chats/${currentChatUserId}/${currentUser.uid}`).set({ lastMessage: text, lastTimestamp: Date.now(), withUser: currentUser.uid }); input.value = ''; await loadPrivateMessages(currentChatUserId); }
-async function sendChatImage(input) { const file = input.files[0]; if (!file || !currentChatUserId) return; const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET); const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd }); const data = await res.json(); const chatId = getChatId(currentUser.uid, currentChatUserId); const message = { senderId: currentUser.uid, senderName: currentUserData?.username, imageUrl: data.secure_url, type: 'image', timestamp: Date.now(), read: false }; await db.ref(`private_messages/${chatId}`).push(message); await db.ref(`private_chats/${currentUser.uid}/${currentChatUserId}`).set({ lastMessage: '📷 صورة', lastTimestamp: Date.now(), withUser: currentChatUserId }); await db.ref(`private_chats/${currentChatUserId}/${currentUser.uid}`).set({ lastMessage: '📷 صورة', lastTimestamp: Date.now(), withUser: currentUser.uid }); input.value = ''; await loadPrivateMessages(currentChatUserId); }
-function addMessageButtonInProfile(userId) { const actionsDiv = document.getElementById('profileActions'); if (actionsDiv && userId !== currentUser?.uid) { const existingBtn = document.getElementById('msgProfileBtn'); if (!existingBtn) { const msgBtn = document.createElement('button'); msgBtn.id = 'msgProfileBtn'; msgBtn.className = 'edit-profile-btn ml-2'; msgBtn.innerHTML = '<i class="fas fa-envelope"></i> رسالة'; msgBtn.onclick = () => openPrivateChat(userId); actionsDiv.appendChild(msgBtn); } } }
-function getChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
-db.ref(`private_messages`).on('child_added', async (snapshot) => { const chatId = snapshot.key; if (currentChatUserId && chatId === getChatId(currentUser.uid, currentChatUserId)) await loadPrivateMessages(currentChatUserId); if (document.getElementById('conversationsPanel').classList.contains('open')) openConversations(); });
+let currentChatUserId = null;
 
-// ========== رفع الفيديو المحسن ==========
+async function openConversations() {
+    const panel = document.getElementById('conversationsPanel');
+    const container = document.getElementById('conversationsList');
+    const userId = currentUser.uid;
+    const convSnap = await db.ref(`private_chats/${userId}`).once('value');
+    const conversations = convSnap.val() || {};
+    container.innerHTML = '';
+    for (const [otherId, convData] of Object.entries(conversations)) {
+        const otherUser = allUsers[otherId];
+        if (!otherUser) continue;
+        const lastMsg = convData.lastMessage || '';
+        container.innerHTML += `
+            <div class="conversation-item" onclick="openPrivateChat('${otherId}')">
+                <div class="conversation-avatar">${otherUser.avatarUrl ? `<img src="${otherUser.avatarUrl}">` : (otherUser.username?.charAt(0) || '👤')}</div>
+                <div class="conversation-info">
+                    <div class="conversation-name">@${otherUser.username}</div>
+                    <div class="conversation-last-msg">${lastMsg.substring(0, 30)}</div>
+                </div>
+            </div>
+        `;
+    }
+    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد محادثات بعد</div>';
+    panel.classList.add('open');
+}
+function closeConversations() { document.getElementById('conversationsPanel').classList.remove('open'); }
+async function openPrivateChat(otherUserId) {
+    currentChatUserId = otherUserId;
+    const user = allUsers[otherUserId];
+    document.getElementById('chatUserName').innerText = `@${user?.username || 'مستخدم'}`;
+    document.getElementById('chatAvatarDisplay').innerHTML = user?.avatarUrl ? `<img src="${user.avatarUrl}" class="w-full h-full object-cover rounded-full">` : (user?.username?.charAt(0) || '👤');
+    await loadPrivateMessages(otherUserId);
+    document.getElementById('privateChatPanel').classList.add('open');
+    closeConversations();
+}
+function closePrivateChat() { document.getElementById('privateChatPanel').classList.remove('open'); currentChatUserId = null; }
+async function loadPrivateMessages(otherUserId) {
+    const container = document.getElementById('privateMessagesList');
+    container.innerHTML = '<div class="text-center text-gray-400 py-10">جاري التحميل...</div>';
+    const chatId = getChatId(currentUser.uid, otherUserId);
+    const messagesSnap = await db.ref(`private_messages/${chatId}`).once('value');
+    const messages = messagesSnap.val() || {};
+    container.innerHTML = '';
+    const sortedMessages = Object.entries(messages).sort((a, b) => a[1].timestamp - b[1].timestamp);
+    for (const [msgId, msg] of sortedMessages) {
+        const isSent = msg.senderId === currentUser.uid;
+        const time = new Date(msg.timestamp).toLocaleTimeString();
+        let content = '';
+        if (msg.type === 'text') content = `<div class="message-bubble ${isSent ? 'sent' : 'received'}">${msg.text}</div>`;
+        else if (msg.type === 'image') content = `<img src="${msg.imageUrl}" class="message-image" onclick="window.open('${msg.imageUrl}')">`;
+        container.innerHTML += `<div class="private-message ${isSent ? 'sent' : 'received'}"><div class="message-content">${content}<div class="message-time">${time}</div></div></div>`;
+    }
+    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد رسائل بعد</div>';
+    container.scrollTop = container.scrollHeight;
+}
+async function sendPrivateMessage() {
+    const input = document.getElementById('privateMessageInput');
+    const text = input.value.trim();
+    if (!text || !currentChatUserId) return;
+    const chatId = getChatId(currentUser.uid, currentChatUserId);
+    const message = { senderId: currentUser.uid, senderName: currentUserData?.username, text: text, type: 'text', timestamp: Date.now(), read: false };
+    await db.ref(`private_messages/${chatId}`).push(message);
+    await db.ref(`private_chats/${currentUser.uid}/${currentChatUserId}`).set({ lastMessage: text, lastTimestamp: Date.now(), withUser: currentChatUserId });
+    await db.ref(`private_chats/${currentChatUserId}/${currentUser.uid}`).set({ lastMessage: text, lastTimestamp: Date.now(), withUser: currentUser.uid });
+    input.value = '';
+    await loadPrivateMessages(currentChatUserId);
+}
+async function sendChatImage(input) {
+    const file = input.files[0];
+    if (!file || !currentChatUserId) return;
+    const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+    const data = await res.json();
+    const chatId = getChatId(currentUser.uid, currentChatUserId);
+    const message = { senderId: currentUser.uid, senderName: currentUserData?.username, imageUrl: data.secure_url, type: 'image', timestamp: Date.now(), read: false };
+    await db.ref(`private_messages/${chatId}`).push(message);
+    await db.ref(`private_chats/${currentUser.uid}/${currentChatUserId}`).set({ lastMessage: '📷 صورة', lastTimestamp: Date.now(), withUser: currentChatUserId });
+    await db.ref(`private_chats/${currentChatUserId}/${currentUser.uid}`).set({ lastMessage: '📷 صورة', lastTimestamp: Date.now(), withUser: currentUser.uid });
+    input.value = '';
+    await loadPrivateMessages(currentChatUserId);
+}
+function addMessageButtonInProfile(userId) {
+    const actionsDiv = document.getElementById('profileActions');
+    if (actionsDiv && userId !== currentUser?.uid) {
+        const existingBtn = document.getElementById('msgProfileBtn');
+        if (!existingBtn) {
+            const msgBtn = document.createElement('button');
+            msgBtn.id = 'msgProfileBtn';
+            msgBtn.className = 'edit-profile-btn ml-2';
+            msgBtn.innerHTML = '<i class="fas fa-envelope"></i> رسالة';
+            msgBtn.onclick = () => openPrivateChat(userId);
+            actionsDiv.appendChild(msgBtn);
+        }
+    }
+}
+function getChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid2}_${uid1}`; }
+db.ref(`private_messages`).on('child_added', async (snapshot) => {
+    const chatId = snapshot.key;
+    if (currentChatUserId && chatId === getChatId(currentUser.uid, currentChatUserId)) await loadPrivateMessages(currentChatUserId);
+    if (document.getElementById('conversationsPanel').classList.contains('open')) openConversations();
+});
+
+// ========== رفع الفيديو ==========
+let selectedVideoFile = null;
+let popularHashtags = ['تيك_توك', 'ترند', 'اكسبلور', 'فن', 'موسيقى', 'ضحك', 'رياضة', 'طبخ', 'سفر', 'تحدي'];
+let popularMusics = ['Original Sound', 'موسيقى هادئة', 'ريمكس ترند', 'أغنية جديدة', 'تيك توك ريمكس'];
+
 function openUploadPanel() { document.getElementById('uploadPanel').classList.add('open'); resetUploadForm(); }
 function closeUploadPanel() { document.getElementById('uploadPanel').classList.remove('open'); resetUploadForm(); }
 function resetUploadForm() { selectedVideoFile = null; document.getElementById('videoPreview').style.display = 'none'; document.querySelector('.preview-placeholder').style.display = 'block'; document.getElementById('videoDescription').value = ''; document.getElementById('videoMusic').value = ''; document.getElementById('uploadProgressBar').style.display = 'none'; document.getElementById('uploadStatus').innerHTML = ''; document.getElementById('uploadSubmitBtn').classList.remove('disabled'); document.getElementById('uploadSubmitBtn').disabled = false; document.getElementById('videoFileInput').value = ''; }
@@ -291,4 +488,4 @@ auth.onAuthStateChanged(async (user) => {
         document.getElementById('mainApp').style.display = 'none';
     }
 });
-console.log('✅ Tiktoki Ultimate System Ready');
+console.log('✅ tiktoki Ultimate System Ready with Watermark');
