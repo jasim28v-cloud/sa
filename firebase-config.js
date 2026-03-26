@@ -1,20 +1,18 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyBMKBnXRZ2mL5C2FYRih6NSpBIbebYeTBI",
-    authDomain: "porn-dc411.firebaseapp.com",
-    databaseURL: "https://porn-dc411-default-rtdb.firebaseio.com",
-    projectId: "porn-dc411",
-    storageBucket: "porn-dc411.firebasestorage.app",
-    messagingSenderId: "344117985586",
-    appId: "1:344117985586:web:d1064a4fd269983174572b",
-    measurementId: "G-CZ6E0V68WZ"
+    apiKey: "AIzaSyCVyQS6kuOBDyx_FXoGx6xgXxbbzjs5COg",
+    authDomain: "fokx-c135a.firebaseapp.com",
+    databaseURL: "https://fokx-c135a-default-rtdb.firebaseio.com",
+    projectId: "fokx-c135a",
+    storageBucket: "fokx-c135a.firebasestorage.app",
+    messagingSenderId: "447033620521",
+    appId: "1:447033620521:web:730fde0a59cb5624128438"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Cloudinary Configuration
-const CLOUD_NAME = 'dnillsbmi';
-const UPLOAD_PRESET = 'ekxzvogb';
+const CLOUD_NAME = 'dk5kas1gc';
+const UPLOAD_PRESET = 'go_kck';
 
-console.log('✅ instagrami Ready');
+console.log('✅ Instagram Clone Ready');
