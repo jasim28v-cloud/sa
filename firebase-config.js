@@ -5,8 +5,8 @@ const firebaseConfig = {
     projectId: "gorm-b3316",
     storageBucket: "gorm-b3316.firebasestorage.app",
     messagingSenderId: "1092629474101",
-    appId: "1:1092629474101:web:d84a61f3cd80e6a83efa7c",
-    measurementId: "G-ZM7FTMWC0N"
+    appId: "1:1092629474101:web:a4f94a6af1c70a2f3efa7c",
+    measurementId: "G-BL0B7VHHV8"
 };
 
 firebase.initializeApp(firebaseConfig);
