@@ -62,7 +62,7 @@ function logout() { auth.signOut(); location.reload(); }
 function checkAdminStatus() {
     if (currentUser && ADMIN_EMAILS.includes(currentUser.email)) {
         isAdmin = true;
-        console.log('✅ Admin mode activated for:', currentUser.email);
+        console.log('✅ Admin mode activated');
         return true;
     }
     isAdmin = false;
@@ -80,7 +80,7 @@ async function renderAdminPanel() {
     const bannedUsers = Object.values(users).filter(u => u.banned).length;
     return `
         <div class="admin-panel-section">
-            <h3 style="color:#e4405f;font-weight:bold;margin-bottom:16px;"><i class="fas fa-shield-alt"></i> لوحة تحكم الأدمن</h3>
+            <h3 style="color:#ec489a;font-weight:bold;margin-bottom:16px;"><i class="fas fa-shield-alt"></i> لوحة التحكم</h3>
             <div class="admin-stats">
                 <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(users).length}</div><div>مستخدمين</div></div>
                 <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(posts).length}</div><div>منشورات</div></div>
@@ -129,12 +129,13 @@ function renderFeed() {
     const container = document.getElementById('feedContainer');
     if (!container) return;
     container.innerHTML = '';
-    if (allPosts.length === 0) { container.innerHTML = '<div class="loading">لا توجد منشورات بعد</div>'; return; }
+    if (allPosts.length === 0) { container.innerHTML = '<div class="loading">✨ لا توجد منشورات بعد</div>'; return; }
     const followingIds = currentUserData?.following ? Object.keys(currentUserData.following) : [];
     const feedPosts = allPosts.filter(p => followingIds.includes(p.sender) || p.sender === currentUser?.uid);
     feedPosts.forEach(post => {
         const user = allUsers[post.sender] || { username: post.senderName || 'user', avatarUrl: '' };
         const isLiked = post.likedBy && post.likedBy[currentUser?.uid];
+        const isFollowing = currentUserData?.following && currentUserData.following[post.sender];
         const mediaHtml = post.mediaType === 'video' 
             ? `<video class="post-media" controls><source src="${post.mediaUrl}" type="video/mp4"></video>`
             : `<img class="post-media" src="${post.mediaUrl}" alt="post">`;
@@ -145,7 +146,8 @@ function renderFeed() {
         div.innerHTML = `
             <div class="post-header">
                 <div class="post-avatar" onclick="viewProfile('${post.sender}')">${user.avatarUrl ? `<img src="${user.avatarUrl}">` : (user.username?.charAt(0) || '👤')}</div>
-                <div class="post-user" onclick="viewProfile('${post.sender}')">${user.username}</div>
+                <div class="post-user" onclick="viewProfile('${post.sender}')">@${user.username}</div>
+                ${currentUser?.uid !== post.sender ? `<button class="follow-small" onclick="toggleFollowProfile('${post.sender}', this)">${isFollowing ? 'متابع' : 'متابعة'}</button>` : ''}
             </div>
             ${mediaHtml}
             <div class="post-actions">
@@ -153,8 +155,7 @@ function renderFeed() {
                 <button class="action-btn" onclick="openCommentsPost('${post.id}')"><i class="fas fa-comment"></i><span>${commentsCount}</span></button>
                 <button class="action-btn" onclick="sharePost('${post.mediaUrl}')"><i class="fas fa-paper-plane"></i></button>
             </div>
-            <div class="post-caption">${caption}</div>
-            <div class="post-time">${new Date(post.timestamp).toLocaleString()}</div>
+            <div class="post-caption">${caption}<div class="post-time">${new Date(post.timestamp).toLocaleString()}</div></div>
         `;
         container.appendChild(div);
     });
@@ -180,17 +181,13 @@ async function toggleLikePost(postId, btn) {
 }
 
 // ========== التعليقات ==========
-let currentPostId = null;
 async function openCommentsPost(postId) {
-    currentPostId = postId;
-    const comments = await db.ref(`posts/${postId}/comments`).once('value');
-    const list = comments.val() || {};
-    let commentText = prompt("أضف تعليقاً:");
-    if (commentText && commentText.trim()) {
+    const comment = prompt("أضف تعليقاً:");
+    if (comment && comment.trim()) {
         await db.ref(`posts/${postId}/comments`).push({
             userId: currentUser.uid,
             username: currentUserData?.username,
-            text: commentText,
+            text: comment,
             timestamp: Date.now()
         });
         const post = allPosts.find(p => p.id === postId);
@@ -199,7 +196,6 @@ async function openCommentsPost(postId) {
     }
 }
 
-// ========== المشاركة ==========
 function sharePost(url) {
     if (navigator.share) navigator.share({ url });
     else { navigator.clipboard.writeText(url); alert('✅ تم نسخ الرابط'); }
@@ -222,14 +218,14 @@ function renderStories(stories) {
     const container = document.getElementById('storiesContainer');
     if (!container) return;
     container.innerHTML = '';
-    if (stories.length === 0) { container.innerHTML = '<div class="text-gray-400 text-sm p-2">لا توجد قصص جديدة</div>'; return; }
+    if (stories.length === 0) { container.innerHTML = '<div class="text-gray-500 text-sm p-4">لا توجد قصص جديدة</div>'; return; }
     stories.forEach(story => {
         const user = allUsers[story.sender] || { username: 'user', avatarUrl: '' };
         const div = document.createElement('div');
         div.className = 'story-item';
         div.onclick = () => window.open(story.mediaUrl, '_blank');
         div.innerHTML = `
-            <div class="story-avatar">${user.avatarUrl ? `<img src="${user.avatarUrl}">` : (user.username?.charAt(0) || '👤')}</div>
+            <div class="story-ring"><img class="story-avatar" src="${user.avatarUrl || 'https://via.placeholder.com/70'}" onerror="this.src='https://via.placeholder.com/70'"></div>
             <div class="story-name">${user.username}</div>
         `;
         container.appendChild(div);
@@ -267,7 +263,7 @@ async function uploadPost() {
     if (!selectedPostMedia) { alert('اختر صورة أو فيديو'); return; }
     const caption = document.getElementById('postCaption').value;
     const statusDiv = document.getElementById('postStatus');
-    statusDiv.innerHTML = 'جاري الرفع...';
+    statusDiv.innerHTML = '📤 جاري الرفع...';
     const fd = new FormData();
     fd.append('file', selectedPostMedia);
     fd.append('upload_preset', UPLOAD_PRESET);
@@ -303,9 +299,9 @@ function searchAll() {
     const posts = allPosts.filter(p => p.caption?.toLowerCase().includes(query));
     const hashtags = [...new Set(allPosts.flatMap(p => (p.caption?.match(/#\w+/g) || []).filter(h => h.toLowerCase().includes(query))))];
     resultsDiv.innerHTML = `
-        ${users.length ? `<h4 class="font-bold mb-2">👥 مستخدمين</h4>${users.map(u => `<div class="flex items-center gap-3 p-2 border-b" onclick="viewProfile('${u.uid}')"><div class="w-10 h-10 rounded-full bg-[#e4405f] flex items-center justify-center">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username.charAt(0))}</div><div>@${u.username}</div></div>`).join('')}` : ''}
-        ${hashtags.length ? `<h4 class="font-bold mb-2 mt-4"># هاشتاقات</h4>${hashtags.map(h => `<div class="p-2 border-b cursor-pointer" onclick="searchHashtag('${h.substring(1)}')">${h}</div>`).join('')}` : ''}
-        ${posts.length ? `<h4 class="font-bold mb-2 mt-4">📷 منشورات</h4>${posts.map(p => `<div class="flex items-center gap-3 p-2 border-b cursor-pointer" onclick="window.open('${p.mediaUrl}','_blank')"><img src="${p.mediaUrl}" class="w-12 h-12 object-cover rounded">${p.caption?.substring(0, 30)}</div>`).join('')}` : ''}
+        ${users.length ? `<h4 class="font-bold mb-3 text-pink-400">👥 مستخدمين</h4>${users.map(u => `<div class="flex items-center gap-3 p-3 border-b border-gray-800" onclick="viewProfile('${u.uid}')"><div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-cyan-500 flex items-center justify-center">${u.avatarUrl ? `<img src="${u.avatarUrl}" class="w-full h-full rounded-full object-cover">` : (u.username.charAt(0))}</div><div><div class="font-bold">@${u.username}</div><div class="text-xs text-gray-500">${u.bio?.substring(0, 40) || ''}</div></div></div>`).join('')}` : ''}
+        ${hashtags.length ? `<h4 class="font-bold mb-3 mt-4 text-cyan-400"># هاشتاقات</h4>${hashtags.map(h => `<div class="p-3 border-b border-gray-800 cursor-pointer hover:bg-gray-900" onclick="searchHashtag('${h.substring(1)}')">${h}</div>`).join('')}` : ''}
+        ${posts.length ? `<h4 class="font-bold mb-3 mt-4 text-pink-400">📷 منشورات</h4>${posts.map(p => `<div class="flex items-center gap-3 p-3 border-b border-gray-800 cursor-pointer" onclick="window.open('${p.mediaUrl}','_blank')"><img src="${p.mediaUrl}" class="w-12 h-12 object-cover rounded-lg">${p.caption?.substring(0, 40)}</div>`).join('')}` : ''}
     `;
 }
 
@@ -327,18 +323,18 @@ async function loadProfileData(userId) {
     document.getElementById('profileFollowers').innerText = Object.keys(user.followers || {}).length;
     document.getElementById('profileFollowing').innerText = Object.keys(user.following || {}).length;
     const grid = document.getElementById('profilePostsGrid');
-    grid.innerHTML = userPosts.map(p => `<div class="post-thumb" onclick="window.open('${p.mediaUrl}','_blank')"><i class="fas fa-${p.mediaType === 'video' ? 'video' : 'image'}"></i></div>`).join('');
+    grid.innerHTML = userPosts.map(p => `<div class="post-thumb" onclick="window.open('${p.mediaUrl}','_blank')"><i class="fas fa-${p.mediaType === 'video' ? 'video' : 'image'} text-2xl text-gray-500"></i></div>`).join('');
     const actions = document.getElementById('profileActions');
     actions.innerHTML = '';
     if (userId === currentUser?.uid) {
-        actions.innerHTML = `<button class="bg-[#e4405f] text-white px-4 py-2 rounded-full" onclick="openEditProfile()">تعديل الملف</button><button class="border border-gray-300 px-4 py-2 rounded-full ml-2" onclick="logout()">تسجيل خروج</button>`;
+        actions.innerHTML = `<button class="bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-2 rounded-full" onclick="openEditProfile()">تعديل الملف</button><button class="border border-gray-600 px-6 py-2 rounded-full ml-2" onclick="logout()">تسجيل خروج</button>`;
         if (isAdmin) {
             const adminPanel = await renderAdminPanel();
             actions.innerHTML += adminPanel;
         }
     } else {
         const isFollowing = currentUserData?.following && currentUserData.following[userId];
-        actions.innerHTML = `<button class="bg-[#e4405f] text-white px-4 py-2 rounded-full" onclick="toggleFollowProfile('${userId}', this)">${isFollowing ? 'متابع' : 'متابعة'}</button>`;
+        actions.innerHTML = `<button class="bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-2 rounded-full" onclick="toggleFollowProfile('${userId}', this)">${isFollowing ? 'متابع' : 'متابعة'}</button>`;
     }
 }
 function openMyProfile() { if (currentUser) viewProfile(currentUser.uid); }
@@ -396,7 +392,7 @@ async function openNotifications() {
     const container = document.getElementById('notificationsList');
     container.innerHTML = '';
     Object.values(notifs).reverse().forEach(n => {
-        container.innerHTML += `<div class="border-b p-3 flex gap-3"><i class="fas ${n.type === 'like' ? 'fa-heart text-red-500' : n.type === 'comment' ? 'fa-comment' : 'fa-user-plus'}"></i><div><div>${n.fromUsername}</div><div class="text-sm text-gray-500">${n.message}</div></div></div>`;
+        container.innerHTML += `<div class="border-b border-gray-800 p-3 flex gap-3"><i class="fas ${n.type === 'like' ? 'fa-heart text-pink-500' : n.type === 'comment' ? 'fa-comment text-cyan-500' : 'fa-user-plus text-green-500'}"></i><div><div>${n.fromUsername}</div><div class="text-sm text-gray-400">${n.message}</div></div></div>`;
         if (!n.read) db.ref(`notifications/${currentUser.uid}/${Object.keys(notifs).find(k => notifs[k] === n)}/read`).set(true);
     });
     panel.classList.add('open');
@@ -415,9 +411,9 @@ async function openConversations() {
         const otherUser = allUsers[otherId];
         if (!otherUser) continue;
         const lastMsg = convData.lastMessage || '';
-        container.innerHTML += `<div class="conversation-item" onclick="openPrivateChat('${otherId}')"><div class="w-10 h-10 rounded-full bg-[#e4405f] flex items-center justify-center">${otherUser.avatarUrl ? `<img src="${otherUser.avatarUrl}">` : (otherUser.username?.charAt(0) || '👤')}</div><div><div class="font-bold">@${otherUser.username}</div><div class="text-sm text-gray-500">${lastMsg.substring(0, 40)}</div></div></div>`;
+        container.innerHTML += `<div class="conversation-item" onclick="openPrivateChat('${otherId}')"><div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-cyan-500 flex items-center justify-center">${otherUser.avatarUrl ? `<img src="${otherUser.avatarUrl}" class="w-full h-full rounded-full object-cover">` : (otherUser.username?.charAt(0) || '👤')}</div><div><div class="font-bold">@${otherUser.username}</div><div class="text-sm text-gray-500">${lastMsg.substring(0, 40)}</div></div></div>`;
     }
-    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد محادثات بعد</div>';
+    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-500 py-10">لا توجد محادثات بعد</div>';
     panel.classList.add('open');
 }
 function closeConversations() { document.getElementById('conversationsPanel').classList.remove('open'); }
@@ -425,7 +421,7 @@ async function openPrivateChat(otherUserId) {
     currentChatUserId = otherUserId;
     const user = allUsers[otherUserId];
     document.getElementById('chatUserName').innerText = `@${user?.username || 'مستخدم'}`;
-    document.getElementById('chatAvatar').innerHTML = user?.avatarUrl ? `<img src="${user.avatarUrl}" class="w-full h-full object-cover rounded-full">` : (user?.username?.charAt(0) || '👤');
+    document.getElementById('chatAvatar').innerHTML = user?.avatarUrl ? `<img src="${user.avatarUrl}" class="w-full h-full rounded-full object-cover">` : (user?.username?.charAt(0) || '👤');
     await loadPrivateMessages(otherUserId);
     document.getElementById('chatPanel').classList.add('open');
     closeConversations();
@@ -433,7 +429,7 @@ async function openPrivateChat(otherUserId) {
 function closeChat() { document.getElementById('chatPanel').classList.remove('open'); currentChatUserId = null; }
 async function loadPrivateMessages(otherUserId) {
     const container = document.getElementById('chatMessages');
-    container.innerHTML = '<div class="text-center text-gray-400 py-10">جاري التحميل...</div>';
+    container.innerHTML = '<div class="text-center text-gray-500 py-10">جاري التحميل...</div>';
     const chatId = getChatId(currentUser.uid, otherUserId);
     const messagesSnap = await db.ref(`private_messages/${chatId}`).once('value');
     const messages = messagesSnap.val() || {};
@@ -447,7 +443,7 @@ async function loadPrivateMessages(otherUserId) {
         else if (msg.type === 'image') content = `<img src="${msg.imageUrl}" class="message-image" onclick="window.open('${msg.imageUrl}')">`;
         container.innerHTML += `<div class="chat-message ${isSent ? 'sent' : 'received'}"><div>${content}<div class="text-[10px] opacity-50 mt-1">${time}</div></div></div>`;
     }
-    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد رسائل بعد</div>';
+    if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-500 py-10">لا توجد رسائل بعد</div>';
     container.scrollTop = container.scrollHeight;
 }
 async function sendChatMessage() {
@@ -486,6 +482,7 @@ function switchTab(tab) {
     document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
     if (event.target.closest('.nav-item')) event.target.closest('.nav-item').classList.add('active');
     if (tab === 'search') openSearch();
+    if (tab === 'notifications') openNotifications();
     if (tab === 'profile') openMyProfile();
     if (tab === 'feed') { closeSearch(); closeNotifications(); closeProfile(); closeConversations(); closeChat(); }
 }
@@ -503,4 +500,4 @@ auth.onAuthStateChanged(async (user) => {
         document.getElementById('mainApp').style.display = 'none';
     }
 });
-console.log('✅ instagrami Ready');
+console.log('✅ ECHO Platform Ready');
