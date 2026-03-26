@@ -97,11 +97,10 @@ function renderFeed() {
     if (!container) return;
     container.innerHTML = '';
     if (allPosts.length === 0) {
-        container.innerHTML = '<div class="loading">لا توجد منشورات بعد</div>';
+        container.innerHTML = '<div class="loading">✨ لا توجد منشورات بعد</div>';
         return;
     }
-    // عرض أحدث 5 منشورات للعرض
-    const feedPosts = allPosts.slice(0, 5);
+    const feedPosts = allPosts.slice(0, 10);
     feedPosts.forEach(post => {
         const user = allUsers[post.sender] || { username: post.senderName || 'user', avatarUrl: '' };
         const isLiked = post.likedBy && post.likedBy[currentUser?.uid];
@@ -143,10 +142,10 @@ function renderReels() {
     if (!container) return;
     container.innerHTML = '';
     if (allPosts.length === 0) {
-        container.innerHTML = '<div class="loading">لا توجد فيديوهات بعد</div>';
+        container.innerHTML = '<div class="loading">🎬 لا توجد فيديوهات بعد</div>';
         return;
     }
-    const reelsPosts = allPosts.filter(p => p.mediaType === 'video').slice(0, 5);
+    const reelsPosts = allPosts.filter(p => p.mediaType === 'video').slice(0, 10);
     reelsPosts.forEach(post => {
         const user = allUsers[post.sender] || { username: post.senderName || 'user', avatarUrl: '' };
         const isLiked = post.likedBy && post.likedBy[currentUser?.uid];
@@ -217,13 +216,12 @@ function openCreatePage() {
 }
 document.getElementById('createPostFile')?.addEventListener('change', (e) => {
     selectedPostFile = e.target.files[0];
-    // معاينة بسيطة
 });
 async function createPost() {
     if (!selectedPostFile) { alert('اختر صورة أو فيديو'); return; }
     const caption = document.querySelector('#createPage .create-caption')?.value || '';
     const statusDiv = document.getElementById('createPostStatus');
-    statusDiv.innerHTML = 'جاري الرفع...';
+    statusDiv.innerHTML = '📤 جاري الرفع...';
     const fd = new FormData();
     fd.append('file', selectedPostFile);
     fd.append('upload_preset', UPLOAD_PRESET);
@@ -246,7 +244,7 @@ async function createPost() {
         });
         statusDiv.innerHTML = '✅ تم النشر!';
         setTimeout(() => showPage('feed'), 1500);
-    } catch (error) { statusDiv.innerHTML = '❌ فشل النشر'; }
+    } catch (error) { statusDiv.innerHTML = '❌ فشل النشر: ' + error.message; }
 }
 
 // ========== التفاعلات ==========
@@ -356,7 +354,6 @@ function editProfile() { alert('ستتم إضافة تعديل الملف لاح
 function renderMessagesPage() {
     const container = document.getElementById('messagesPage');
     if (!container) return;
-    // بيانات تجريبية
     const mockChats = [
         { id: 'user1', name: '🇮🇹🇪🇸🧡 تمت المشاهدة', avatar: '', lastActivity: 'منذ ٤٦ د', status: 'new', action: 'camera' },
         { id: 'user2', name: 'محمد الشيخ نشط', avatar: '', lastActivity: 'منذ ٣٤ د', status: 'active', action: 'call' },
@@ -397,7 +394,6 @@ function renderMessagesPage() {
         </div>
         <div class="chat-list">${chatListHtml}</div>
     `;
-    // إضافة القصص
     const storiesContainer = document.getElementById('messagesStoriesRow');
     if (storiesContainer) {
         storiesContainer.innerHTML = stories.map(s => `
@@ -408,7 +404,6 @@ function renderMessagesPage() {
             </div>
         `).join('');
     }
-    // ربط التبويبات
     document.querySelectorAll('.chat-tab').forEach(tab => {
         tab.onclick = () => {
             document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
@@ -480,9 +475,7 @@ function showPage(page) {
         if (el) el.style.display = 'none';
     });
     document.getElementById(page + 'Page').style.display = 'block';
-    // تحديث الشريط العلوي
     updateTopBar(page);
-    // تحديث الشريط السفلي
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
     if (page === 'feed') document.getElementById('navHome').classList.add('active');
     if (page === 'search') document.getElementById('navSearch').classList.add('active');
@@ -491,7 +484,6 @@ function showPage(page) {
     if (page === 'profile') document.getElementById('navProfile').classList.add('active');
     if (page === 'messages') document.getElementById('navMessages')?.classList.add('active');
     
-    // عرض المحتوى الخاص بالصفحة إذا لزم الأمر
     if (page === 'profile') loadProfileData(currentUser.uid);
     if (page === 'messages') renderMessagesPage();
     if (page === 'create') {
@@ -549,7 +541,6 @@ function updateTopBar(page) {
 
 // ========== تهيئة الصفحات ==========
 function initPages() {
-    // إضافة العناصر الثابتة للملف الشخصي
     const profileDiv = document.getElementById('profilePage');
     profileDiv.innerHTML = `
         <div class="profile-header">
@@ -565,7 +556,6 @@ function initPages() {
         </div>
         <div id="profilePostsGrid" class="posts-grid"></div>
     `;
-    
     const createDiv = document.getElementById('createPage');
     createDiv.innerHTML = `
         <div class="create-post-area">
@@ -597,11 +587,10 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// أزرار التنقل
 document.getElementById('navHome').addEventListener('click', () => showPage('feed'));
 document.getElementById('navSearch').addEventListener('click', () => showPage('search'));
 document.getElementById('navCreate').addEventListener('click', () => showPage('create'));
 document.getElementById('navReels').addEventListener('click', () => showPage('reels'));
 document.getElementById('navProfile').addEventListener('click', () => openMyProfile());
 
-console.log('✅ Instagram Clone Ready');
+console.log('✅ instagrami Ready');
