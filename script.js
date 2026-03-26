@@ -1,6 +1,6 @@
 // ========== إعدادات الأدمن ==========
-// ⚠️ ضع بريدك الإلكتروني هنا لتصبح Admin ⚠️
-const ADMIN_EMAILS = ['admin@example.com', 'your-email@gmail.com']; // استبدل ببريدك
+// ⚠️ تم تعيين بريدك كـ Admin تلقائياً ⚠️
+const ADMIN_EMAILS = ['jasim28v@gmail.com']; // ✅ تم إضافة بريدك
 let isAdmin = false;
 
 // ========== المتغيرات العامة ==========
@@ -66,6 +66,15 @@ function checkAdminStatus() {
     if (currentUser && ADMIN_EMAILS.includes(currentUser.email)) {
         isAdmin = true;
         console.log('✅ Admin mode activated for:', currentUser.email);
+        // إضافة شارة الأدمن في واجهة المستخدم
+        const adminBadge = document.createElement('span');
+        adminBadge.className = 'admin-badge';
+        adminBadge.innerHTML = '👑 Admin';
+        adminBadge.style.cssText = 'background:#fe2c55;padding:2px 8px;border-radius:20px;font-size:10px;margin-left:8px';
+        const nameElement = document.getElementById('profileNameDisplay');
+        if (nameElement && !nameElement.querySelector('.admin-badge')) {
+            nameElement.appendChild(adminBadge);
+        }
         return true;
     }
     isAdmin = false;
@@ -84,49 +93,49 @@ async function renderAdminPanel() {
     const bannedUsers = Object.values(users).filter(u => u.banned).length;
     
     let html = `
-        <div class="admin-panel-section">
-            <h3 class="text-red-500 font-bold mb-4 flex items-center gap-2"><i class="fas fa-shield-alt"></i> لوحة تحكم الأدمن</h3>
-            <div class="admin-stats">
-                <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(users).length}</div><div class="admin-stat-label">مستخدمين</div></div>
-                <div class="admin-stat-card"><div class="admin-stat-number">${Object.keys(videos).length}</div><div class="admin-stat-label">فيديوهات</div></div>
-                <div class="admin-stat-card"><div class="admin-stat-number">${totalLikes}</div><div class="admin-stat-label">إجمالي الإعجابات</div></div>
-                <div class="admin-stat-card"><div class="admin-stat-number">${bannedUsers}</div><div class="admin-stat-label">محظورين</div></div>
+        <div class="admin-panel-section" style="margin-top:20px;padding:16px;background:rgba(254,44,85,0.1);border-radius:20px;border:1px solid rgba(254,44,85,0.3)">
+            <h3 style="color:#fe2c55;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-shield-alt"></i> لوحة تحكم الأدمن</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+                <div style="background:rgba(0,0,0,0.5);border-radius:12px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:bold;color:#fe2c55">${Object.keys(users).length}</div><div style="font-size:11px;opacity:0.7">مستخدمين</div></div>
+                <div style="background:rgba(0,0,0,0.5);border-radius:12px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:bold;color:#fe2c55">${Object.keys(videos).length}</div><div style="font-size:11px;opacity:0.7">فيديوهات</div></div>
+                <div style="background:rgba(0,0,0,0.5);border-radius:12px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:bold;color:#fe2c55">${totalLikes}</div><div style="font-size:11px;opacity:0.7">إجمالي الإعجابات</div></div>
+                <div style="background:rgba(0,0,0,0.5);border-radius:12px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:bold;color:#fe2c55">${bannedUsers}</div><div style="font-size:11px;opacity:0.7">محظورين</div></div>
             </div>
             
-            <div class="mb-4">
-                <h4 class="font-bold mb-2 flex items-center gap-2"><i class="fas fa-trash-alt"></i> حذف فيديوهات</h4>
-                <div class="admin-list">
+            <div style="margin-bottom:20px">
+                <h4 style="font-weight:bold;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-trash-alt"></i> حذف فيديوهات</h4>
+                <div style="max-height:250px;overflow-y:auto">
                     ${Object.entries(videos).reverse().slice(0, 15).map(([id, v]) => `
-                        <div class="admin-item">
-                            <div class="admin-item-info">
-                                <div class="admin-item-avatar"><i class="fas fa-video"></i></div>
-                                <div class="admin-item-text">
-                                    <div class="admin-item-name">${v.description?.substring(0, 35) || 'فيديو'}</div>
-                                    <div class="admin-item-email">@${v.senderName || 'user'}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.5);padding:10px;border-radius:12px;margin-bottom:8px">
+                            <div style="display:flex;align-items:center;gap:10px;flex:1;overflow:hidden">
+                                <div style="width:36px;height:36px;border-radius:50%;background:#fe2c55;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-video"></i></div>
+                                <div style="overflow:hidden">
+                                    <div style="font-weight:bold;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.description?.substring(0, 35) || 'فيديو'}</div>
+                                    <div style="font-size:10px;opacity:0.6">@${v.senderName || 'user'}</div>
                                 </div>
                             </div>
-                            <button class="admin-delete-btn" onclick="adminDeleteVideo('${id}')">حذف</button>
+                            <button class="admin-delete-btn" onclick="adminDeleteVideo('${id}')" style="background:rgba(255,0,0,0.3);border:none;color:#ff4444;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer">حذف</button>
                         </div>
                     `).join('')}
                 </div>
-                ${Object.keys(videos).length > 15 ? `<p class="text-center text-xs opacity-60 mt-2">+${Object.keys(videos).length - 15} فيديو آخر</p>` : ''}
+                ${Object.keys(videos).length > 15 ? `<p style="text-align:center;font-size:11px;opacity:0.6;margin-top:8px">+${Object.keys(videos).length - 15} فيديو آخر</p>` : ''}
             </div>
             
             <div>
-                <h4 class="font-bold mb-2 flex items-center gap-2"><i class="fas fa-users"></i> إدارة المستخدمين</h4>
-                <div class="admin-list">
+                <h4 style="font-weight:bold;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="fas fa-users"></i> إدارة المستخدمين</h4>
+                <div style="max-height:300px;overflow-y:auto">
                     ${Object.entries(users).slice(0, 15).map(([uid, u]) => `
-                        <div class="admin-item">
-                            <div class="admin-item-info">
-                                <div class="admin-item-avatar">${u.avatarUrl ? `<img src="${u.avatarUrl}">` : (u.username?.charAt(0) || 'U')}</div>
-                                <div class="admin-item-text">
-                                    <div class="admin-item-name">@${u.username} ${u.banned ? '<span class="admin-badge">محظور</span>' : ''}</div>
-                                    <div class="admin-item-email">${u.email || ''}</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.5);padding:10px;border-radius:12px;margin-bottom:8px">
+                            <div style="display:flex;align-items:center;gap:10px;flex:1;overflow:hidden">
+                                <div style="width:36px;height:36px;border-radius:50%;background:#fe2c55;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">${u.avatarUrl ? `<img src="${u.avatarUrl}" style="width:100%;height:100%;object-fit:cover">` : (u.username?.charAt(0) || 'U')}</div>
+                                <div style="overflow:hidden">
+                                    <div style="font-weight:bold;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@${u.username} ${u.banned ? '<span style="background:#fe2c55;padding:2px 6px;border-radius:12px;font-size:9px;margin-left:5px">محظور</span>' : ''}</div>
+                                    <div style="font-size:10px;opacity:0.6">${u.email || ''}</div>
                                 </div>
                             </div>
                             <div>
-                                ${!u.banned ? `<button class="admin-ban-btn" onclick="adminBanUser('${uid}')">حظر</button>` : `<button class="admin-ban-btn" style="background:rgba(76,175,80,0.3);color:#4caf50" onclick="adminUnbanUser('${uid}')">إلغاء الحظر</button>`}
-                                <button class="admin-delete-btn" onclick="adminDeleteUser('${uid}')">حذف</button>
+                                ${!u.banned ? `<button class="admin-ban-btn" onclick="adminBanUser('${uid}')" style="background:rgba(255,165,0,0.3);border:none;color:#ffaa44;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;margin-left:5px">حظر</button>` : `<button class="admin-unban-btn" onclick="adminUnbanUser('${uid}')" style="background:rgba(76,175,80,0.3);border:none;color:#4caf50;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;margin-left:5px">إلغاء الحظر</button>`}
+                                <button class="admin-delete-btn" onclick="adminDeleteUser('${uid}')" style="background:rgba(255,0,0,0.3);border:none;color:#ff4444;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer">حذف</button>
                             </div>
                         </div>
                     `).join('')}
