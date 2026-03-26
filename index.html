@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ECHO | منصة اجتماعية عصرية</title>
+    <title>instagrami ❤️ | منصة اجتماعية عصرية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -226,11 +226,33 @@
             font-size: 11px;
             cursor: pointer;
         }
+        .media-container {
+            position: relative;
+            background: #000;
+        }
         .post-media {
             width: 100%;
             max-height: 500px;
             object-fit: cover;
+            display: block;
         }
+        /* علامة مائية على الفيديوهات */
+        .video-watermark {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+            pointer-events: none;
+            z-index: 5;
+            font-family: system-ui;
+        }
+        .video-watermark i { color: #ec489a; margin-left: 4px; }
         .post-actions {
             display: flex;
             gap: 24px;
@@ -527,7 +549,7 @@
 <!-- شاشة تسجيل الدخول -->
 <div id="loginScreen" class="login-screen">
     <div class="login-card">
-        <h1>ECHO</h1>
+        <h1>instagrami <i class="fas fa-heart" style="color:#ec489a"></i></h1>
         <div class="auth-tabs">
             <button class="auth-tab active" onclick="switchAuth('login')">تسجيل الدخول</button>
             <button class="auth-tab" onclick="switchAuth('register')">إنشاء حساب</button>
@@ -545,14 +567,14 @@
             <button onclick="register()">إنشاء حساب</button>
             <div id="regMsg" class="text-red-500 text-sm text-center mt-3"></div>
         </div>
-        <div class="version">الإصدار 3.0 | مارس 2026</div>
+        <div class="version">الإصدار 3.1 | مارس 2026</div>
     </div>
 </div>
 
 <!-- التطبيق الرئيسي -->
 <div id="mainApp">
     <div class="top-bar">
-        <div class="logo">ECHO</div>
+        <div class="logo">instagrami ❤️</div>
         <div class="top-icons">
             <i class="far fa-heart top-icon" onclick="openNotifications()"></i>
             <i class="far fa-paper-plane top-icon" onclick="openConversations()"></i>
