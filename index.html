@@ -3,481 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TikTok Clone</title>
+    <title>SHΔDØW | TikTok Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #000;
-            color: #fff;
-            overflow: hidden;
-            height: 100vh;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #000; color: #fff; overflow: hidden; height: 100vh; }
+        
         /* شاشة تسجيل الدخول */
-        .login-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            background: #111;
-            border-radius: 24px;
-            padding: 40px 24px;
-            width: 90%;
-            max-width: 350px;
-            text-align: center;
-        }
-        .login-card h1 {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 30px;
-        }
-        .login-card input {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            border-radius: 12px;
-            background: #222;
-            border: none;
-            color: white;
-        }
-        .login-card button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 20px;
-            background: #fe2c55;
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .auth-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .auth-tab {
-            flex: 1;
-            padding: 10px;
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-        .auth-tab.active {
-            color: #fe2c55;
-            border-bottom-color: #fe2c55;
-        }
-        .auth-form {
-            display: none;
-        }
-        .auth-form.active {
-            display: block;
-        }
+        .login-screen { position: fixed; inset: 0; z-index: 1000; background: radial-gradient(circle at 30% 10%, #0a0a0a, #000); display: flex; align-items: center; justify-content: center; }
+        .login-card { background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); border-radius: 32px; padding: 40px 28px; width: 90%; max-width: 380px; text-align: center; border: 1px solid rgba(254,44,85,0.3); box-shadow: 0 0 40px rgba(254,44,85,0.2); animation: fadeInUp 0.5s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .login-card h1 { font-size: 38px; font-weight: 900; background: linear-gradient(135deg, #fe2c55, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
+        .login-card input { width: 100%; padding: 14px 18px; margin: 10px 0; border-radius: 30px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 15px; }
+        .login-card input:focus { outline: none; border-color: #fe2c55; background: rgba(254,44,85,0.1); }
+        .login-card button { width: 100%; padding: 14px; margin-top: 20px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 30px; background: rgba(255,255,255,0.05); border-radius: 60px; padding: 4px; }
+        .auth-tab { flex: 1; padding: 12px; background: none; border: none; color: #888; cursor: pointer; border-radius: 60px; transition: all 0.3s; }
+        .auth-tab.active { background: #fe2c55; color: white; box-shadow: 0 0 15px rgba(254,44,85,0.5); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         /* التطبيق الرئيسي */
-        #mainApp {
-            display: none;
-            height: 100vh;
-            background: #000;
-        }
-        /* شريط علوي مثل تيك توك */
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            padding: 12px 20px;
-            z-index: 100;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-        }
-        .top-bar span {
-            font-weight: bold;
-            font-size: 17px;
-        }
-        .top-bar span:first-child {
-            color: #fe2c55;
-        }
+        #mainApp { display: none; height: 100vh; background: #000; position: relative; }
+        
+        /* شريط علوي */
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
+        .logo { display: flex; align-items: center; gap: 8px; }
+        .logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .logo-text { font-weight: 800; font-size: 18px; }
+        .top-tabs { display: flex; gap: 20px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 30px; }
+        .top-tab { background: none; border: none; color: rgba(255,255,255,0.6); font-weight: 500; padding: 6px 12px; cursor: pointer; border-radius: 20px; font-size: 14px; }
+        .top-tab.active { color: #fe2c55; background: rgba(254,44,85,0.2); }
+        .top-icons { display: flex; gap: 18px; }
+        .top-icon { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        
         /* حاوية الفيديوهات */
-        .videos-container {
-            height: 100vh;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-        }
-        .videos-container::-webkit-scrollbar {
-            display: none;
-        }
-        .video-item {
-            height: 100vh;
-            scroll-snap-align: start;
-            position: relative;
-            background: #000;
-        }
-        .video-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        /* معلومات الفيديو أسفل اليسار */
-        .video-info {
-            position: absolute;
-            bottom: 100px;
-            left: 16px;
-            right: 80px;
-            z-index: 20;
-        }
-        .author-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        .author-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #fe2c55, #ff6b6b);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            border: 2px solid white;
-        }
-        .author-name {
-            font-weight: bold;
-            font-size: 17px;
-            cursor: pointer;
-        }
-        .follow-btn {
-            background: #fe2c55;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 8px;
-            cursor: pointer;
-            border: none;
-            color: white;
-        }
-        .video-caption {
-            font-size: 14px;
-            margin-bottom: 8px;
-            line-height: 1.3;
-        }
-        .video-music {
-            font-size: 12px;
-            opacity: 0.8;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .videos-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .videos-container::-webkit-scrollbar { display: none; }
+        .video-item { height: 100vh; scroll-snap-align: start; position: relative; background: #000; margin-bottom: 2px; }
+        .video-item video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        
+        /* معلومات الفيديو */
+        .video-info { position: absolute; bottom: 100px; left: 16px; right: 80px; z-index: 20; }
+        .author-info { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .author-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #fe2c55, #ff6b6b); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid white; overflow: hidden; }
+        .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .author-name { font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .follow-btn { background: #fe2c55; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; border: none; color: white; }
+        .video-caption { font-size: 14px; margin-bottom: 8px; line-height: 1.4; }
+        .video-music { font-size: 12px; opacity: 0.8; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .hashtag { color: #fe2c55; cursor: pointer; }
+        
         /* الأزرار الجانبية */
-        .side-actions {
-            position: absolute;
-            right: 12px;
-            bottom: 120px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            z-index: 20;
-        }
-        .side-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-        .side-btn i {
-            font-size: 32px;
-        }
-        .side-btn.active i {
-            color: #fe2c55;
-        }
+        .side-actions { position: absolute; right: 12px; bottom: 120px; display: flex; flex-direction: column; gap: 24px; z-index: 20; }
+        .side-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: white; cursor: pointer; font-size: 11px; }
+        .side-btn i { font-size: 32px; }
+        .side-btn.active i { color: #fe2c55; }
+        .side-btn .count { font-weight: bold; }
+        
         /* شريط سفلي */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px 0 20px;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.6);
-            cursor: pointer;
-            font-size: 10px;
-        }
-        .nav-item i {
-            font-size: 24px;
-        }
-        .nav-item.active {
-            color: #fe2c55;
-        }
-        .create-btn {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #fe2c55, #ff6b6b);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: -20px;
-        }
-        .create-btn i {
-            font-size: 24px;
-            color: white;
-        }
-        /* لوحة التعليقات */
-        .comments-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #111;
-            border-radius: 20px 20px 0 0;
-            max-height: 70vh;
-            overflow-y: auto;
-            z-index: 200;
-            transform: translateY(100%);
-            transition: 0.3s;
-            padding: 20px;
-        }
-        .comments-panel.open {
-            transform: translateY(0);
-        }
-        .comment-item {
-            display: flex;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .comment-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #fe2c55;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .add-comment {
-            display: flex;
-            gap: 10px;
-            padding: 12px;
-            background: #1a1a1a;
-            border-radius: 30px;
-            margin-top: 10px;
-        }
-        .add-comment input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: white;
-            outline: none;
-        }
-        /* لوحة البحث */
-        .search-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 300;
-            padding: 60px 20px 20px;
-            transform: translateX(100%);
-            transition: 0.3s;
-            overflow-y: auto;
-        }
-        .search-panel.open {
-            transform: translateX(0);
-        }
-        .search-input {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 30px;
-            background: #222;
-            border: none;
-            color: white;
-            margin-bottom: 20px;
-        }
-        .search-result {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-        }
-        /* لوحة الإشعارات */
-        .notifications-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 300;
-            padding: 60px 20px 20px;
-            transform: translateX(100%);
-            transition: 0.3s;
-            overflow-y: auto;
-        }
-        .notifications-panel.open {
-            transform: translateX(0);
-        }
-        .notification-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        /* صفحة الملف الشخصي */
-        .profile-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 400;
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: 0.3s;
-        }
-        .profile-panel.open {
-            transform: translateX(0);
-        }
-        .profile-header {
-            text-align: center;
-            padding: 50px 20px 30px;
-            background: linear-gradient(135deg, #fe2c55, #ff6b6b);
-        }
-        .profile-avatar-large {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            margin: 0 auto;
-            border: 3px solid white;
-        }
-        .profile-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin: 20px 0;
-        }
-        .stat {
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        .edit-profile-btn, .logout-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            padding: 10px 24px;
-            border-radius: 30px;
-            color: white;
-            margin: 0 8px;
-            cursor: pointer;
-        }
-        .videos-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2px;
-            margin-top: 10px;
-        }
-        .video-thumb {
-            aspect-ratio: 9/16;
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        /* لوحة تعديل الملف الشخصي */
-        .edit-profile-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 500;
-            padding: 60px 20px 20px;
-            transform: translateX(100%);
-            transition: 0.3s;
-            overflow-y: auto;
-        }
-        .edit-profile-panel.open {
-            transform: translateX(0);
-        }
-        .edit-input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 12px;
-            background: #222;
-            border: none;
-            color: white;
-        }
-        /* مؤشر التحميل */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: #888;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 12px 0 24px; background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); z-index: 100; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 10px; }
+        .nav-item i { font-size: 24px; }
+        .nav-item.active { color: #fe2c55; transform: translateY(-2px); }
+        .create-btn { width: 52px; height: 52px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -28px; cursor: pointer; box-shadow: 0 0 20px rgba(254,44,85,0.5); }
+        
+        /* اللوحات المنبثقة */
+        .share-panel, .comments-panel, .search-panel, .notifications-panel, .profile-panel, .edit-profile-panel, .sounds-panel { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 300; transform: translateX(100%); transition: 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); overflow-y: auto; }
+        .share-panel.open, .comments-panel.open, .search-panel.open, .notifications-panel.open, .profile-panel.open, .edit-profile-panel.open, .sounds-panel.open { transform: translateX(0); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; background: #000; }
+        .close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        
+        /* الملف الشخصي */
+        .profile-panel { background: #000; }
+        .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; }
+        .profile-header { text-align: center; padding: 60px 20px 40px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); }
+        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto; border: 3px solid white; overflow: hidden; cursor: pointer; }
+        .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-stats { display: flex; justify-content: center; gap: 40px; margin: 24px 0; }
+        .stat { text-align: center; }
+        .stat-number { font-size: 22px; font-weight: bold; }
+        .stat-label { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+        .edit-profile-btn, .logout-btn, .follow-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 10px 28px; border-radius: 40px; color: white; margin: 0 8px; cursor: pointer; font-size: 14px; }
+        .follow-btn { background: #fe2c55; border: none; }
+        .videos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 16px; }
+        .video-thumb { aspect-ratio: 9/16; background: #1a1a1a; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; }
+        
+        /* لوحة الأدمن */
+        .admin-panel-section { background: rgba(254,44,85,0.1); border: 1px solid rgba(254,44,85,0.3); border-radius: 20px; padding: 16px; margin-top: 20px; }
+        .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .admin-stat-card { background: rgba(0,0,0,0.5); border-radius: 12px; padding: 12px; text-align: center; }
+        .admin-stat-number { font-size: 24px; font-weight: bold; color: #fe2c55; }
+        .admin-stat-label { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+        .admin-list { max-height: 300px; overflow-y: auto; margin-top: 12px; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; margin-bottom: 8px; }
+        .admin-item-info { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden; }
+        .admin-item-avatar { width: 36px; height: 36px; border-radius: 50%; background: #fe2c55; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .admin-item-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-item-text { overflow: hidden; }
+        .admin-item-name { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-item-email { font-size: 10px; opacity: 0.6; }
+        .admin-delete-btn { background: rgba(255,0,0,0.3); border: none; color: #ff4444; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; margin-left: 5px; }
+        .admin-ban-btn { background: rgba(255,165,0,0.3); border: none; color: #ffaa44; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; }
+        
+        .comment-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: #fe2c55; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .add-comment { display: flex; gap: 12px; padding: 12px; background: #1a1a1a; border-radius: 30px; margin-top: 16px; position: sticky; bottom: 0; }
+        .add-comment input { flex: 1; background: none; border: none; color: white; outline: none; }
+        .search-input { width: 100%; padding: 14px 18px; border-radius: 30px; background: #1a1a1a; border: none; color: white; margin-bottom: 20px; }
+        .search-result { display: flex; align-items: center; gap: 14px; padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+        .search-avatar { width: 48px; height: 48px; border-radius: 50%; background: #fe2c55; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .sound-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+        .sound-icon { width: 52px; height: 52px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .share-option { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+        .copy-toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 12px 24px; border-radius: 50px; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .copy-toast.show { opacity: 1; }
+        .heart-animation { position: fixed; font-size: 80px; color: #fe2c55; pointer-events: none; z-index: 1000; animation: heartFloat 0.8s ease-out forwards; }
+        @keyframes heartFloat { 0% { transform: scale(0.5) translateY(0); opacity: 1; } 100% { transform: scale(1.5) translateY(-100px); opacity: 0; } }
+        .loading { display: flex; align-items: center; justify-content: center; height: 100vh; color: #888; gap: 12px; flex-direction: column; }
+        .spinner { width: 36px; height: 36px; border: 3px solid rgba(254,44,85,0.3); border-top-color: #fe2c55; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .edit-input { width: 100%; padding: 14px 16px; margin: 10px 0; border-radius: 16px; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); color: white; }
+        .save-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #fe2c55, #ff6b6b); border: none; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .notification-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .admin-badge { background: #fe2c55; padding: 2px 8px; border-radius: 20px; font-size: 10px; margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -485,7 +141,7 @@
 <!-- شاشة تسجيل الدخول -->
 <div id="loginScreen" class="login-screen">
     <div class="login-card">
-        <h1 style="color:#fe2c55">TikTok</h1>
+        <h1>SHΔDØW</h1>
         <div class="auth-tabs">
             <button class="auth-tab active" onclick="switchAuth('login')">تسجيل الدخول</button>
             <button class="auth-tab" onclick="switchAuth('register')">إنشاء حساب</button>
@@ -494,96 +150,76 @@
             <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
             <input type="password" id="loginPassword" placeholder="كلمة المرور">
             <button onclick="login()">دخول</button>
-            <div id="loginMsg" class="text-red-500 text-sm text-center mt-2"></div>
+            <div id="loginMsg" class="text-red-500 text-sm text-center mt-3"></div>
         </div>
         <div id="registerForm" class="auth-form">
             <input type="text" id="regName" placeholder="اسم المستخدم">
             <input type="email" id="regEmail" placeholder="البريد الإلكتروني">
-            <input type="password" id="regPass" placeholder="كلمة المرور">
+            <input type="password" id="regPass" placeholder="كلمة المرور (6 أحرف)">
             <button onclick="register()">إنشاء حساب</button>
-            <div id="regMsg" class="text-red-500 text-sm text-center mt-2"></div>
+            <div id="regMsg" class="text-red-500 text-sm text-center mt-3"></div>
         </div>
     </div>
 </div>
 
 <!-- التطبيق الرئيسي -->
 <div id="mainApp">
-    <!-- شريط علوي مثل تيك توك -->
     <div class="top-bar">
-        <span>متابَعين</span>
-        <span style="color:white">لك</span>
+        <div class="logo"><div class="logo-icon">S</div><span class="logo-text">SHΔDØW</span></div>
+        <div class="top-tabs">
+            <button class="top-tab" onclick="switchFeed('following')">متابَعين</button>
+            <button class="top-tab active" onclick="switchFeed('forYou')">لك</button>
+        </div>
+        <div class="top-icons">
+            <i class="fas fa-search top-icon" onclick="openSearch()"></i>
+            <i class="fas fa-music top-icon" onclick="openSounds()"></i>
+        </div>
     </div>
 
-    <!-- حاوية الفيديوهات -->
-    <div class="videos-container" id="videosContainer">
-        <div class="loading"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
-    </div>
+    <div class="videos-container" id="videosContainer"><div class="loading"><div class="spinner"></div><span>جاري التحميل...</span></div></div>
 
-    <!-- أزرار جانبية ثابتة للصوت -->
-    <div id="globalSoundBtn" class="side-actions" style="right: 12px; bottom: auto; top: 100px;">
-        <button class="side-btn" onclick="toggleGlobalMute()">
-            <i class="fas fa-volume-up"></i>
-        </button>
-    </div>
-
-    <!-- شريط سفلي مثل تيك توك -->
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('home')"><i class="fas fa-home"></i><span>الرئيسية</span></button>
         <button class="nav-item" onclick="switchTab('search')"><i class="fas fa-search"></i><span>بحث</span></button>
         <div class="create-btn" onclick="openUpload()"><i class="fas fa-plus"></i></div>
         <button class="nav-item" onclick="switchTab('notifications')"><i class="fas fa-heart"></i><span>الإشعارات</span></button>
-        <button class="nav-item" onclick="openProfile()"><i class="fas fa-user"></i><span>الملف</span></button>
+        <button class="nav-item" onclick="openMyProfile()"><i class="fas fa-user"></i><span>الملف</span></button>
     </div>
 
-    <!-- لوحة التعليقات -->
-    <div id="commentsPanel" class="comments-panel">
-        <div class="flex justify-between items-center mb-4"><h3>التعليقات</h3><i class="fas fa-times cursor-pointer" onclick="closeComments()"></i></div>
-        <div id="commentsList"></div>
-        <div class="add-comment"><input type="text" id="commentInput" placeholder="أضف تعليقاً..."><button onclick="addComment()" style="color:#fe2c55">نشر</button></div>
-    </div>
+    <div id="copyToast" class="copy-toast">✅ تم نسخ الرابط</div>
 
-    <!-- لوحة البحث -->
-    <div id="searchPanel" class="search-panel">
-        <div class="flex justify-between items-center mb-4"><h3>بحث</h3><i class="fas fa-times cursor-pointer" onclick="closeSearch()"></i></div>
-        <input type="text" id="searchInput" class="search-input" placeholder="بحث عن مستخدمين..." onkeyup="searchUsers()">
-        <div id="searchResults"></div>
-    </div>
+    <!-- لوحات -->
+    <div id="sharePanel" class="share-panel"><div class="panel-header"><h3>مشاركة</h3><button class="close-btn" onclick="closeShare()"><i class="fas fa-times"></i></button></div><div class="share-option" onclick="copyLink()"><i class="fas fa-link text-blue-400"></i><span>نسخ الرابط</span></div><div class="share-option" onclick="shareToWhatsApp()"><i class="fab fa-whatsapp text-green-500"></i><span>WhatsApp</span></div><div class="share-option" onclick="shareToTelegram()"><i class="fab fa-telegram text-blue-400"></i><span>Telegram</span></div><div class="share-option" onclick="downloadVideo()"><i class="fas fa-download"></i><span>تنزيل</span></div></div>
 
-    <!-- لوحة الإشعارات -->
-    <div id="notificationsPanel" class="notifications-panel">
-        <div class="flex justify-between items-center mb-4"><h3>الإشعارات</h3><i class="fas fa-times cursor-pointer" onclick="closeNotifications()"></i></div>
-        <div id="notificationsList"></div>
-    </div>
+    <div id="commentsPanel" class="comments-panel"><div class="panel-header"><h3>التعليقات</h3><button class="close-btn" onclick="closeComments()"><i class="fas fa-times"></i></button></div><div id="commentsList" class="p-4"></div><div class="add-comment p-4"><input type="text" id="commentInput" placeholder="أضف تعليقاً..."><button onclick="addComment()">نشر</button></div></div>
 
-    <!-- صفحة الملف الشخصي -->
+    <div id="searchPanel" class="search-panel"><div class="panel-header"><h3>بحث</h3><button class="close-btn" onclick="closeSearch()"><i class="fas fa-times"></i></button></div><div class="p-4"><input type="text" id="searchInput" class="search-input" placeholder="بحث..." onkeyup="searchAll()"></div><div id="searchResults" class="p-4"></div></div>
+
+    <div id="soundsPanel" class="sounds-panel"><div class="panel-header"><h3>الأصوات الشائعة</h3><button class="close-btn" onclick="closeSounds()"><i class="fas fa-times"></i></button></div><div id="soundsList" class="p-2"></div></div>
+
+    <div id="notificationsPanel" class="notifications-panel"><div class="panel-header"><h3>الإشعارات</h3><button class="close-btn" onclick="closeNotifications()"><i class="fas fa-times"></i></button></div><div id="notificationsList" class="p-4"></div></div>
+
     <div id="profilePanel" class="profile-panel">
+        <div class="back-btn" onclick="closeProfile()"><i class="fas fa-arrow-right"></i></div>
         <div class="profile-header">
-            <div class="profile-avatar-large" id="profileAvatarDisplay">👤</div>
-            <h2 id="profileNameDisplay" class="mt-4 text-xl"></h2>
+            <div class="profile-avatar-large" id="profileAvatarDisplay" onclick="changeAvatar()">👤</div>
+            <h2 id="profileNameDisplay" class="mt-4 text-xl font-bold"></h2>
             <p id="profileBioDisplay" class="text-sm opacity-70 mt-1"></p>
             <div class="profile-stats">
                 <div class="stat"><div class="stat-number" id="profileFollowing">0</div><div class="stat-label">يتابع</div></div>
                 <div class="stat"><div class="stat-number" id="profileFollowers">0</div><div class="stat-label">متابع</div></div>
-                <div class="stat"><div class="stat-number" id="profileLikes">0</div><div class="stat-label">إعجاب</div></div>
+                <div class="stat"><div class="stat-number" id="profileLikes">0</div><div class="stat-label">إجمالي الإعجابات</div></div>
             </div>
-            <div>
-                <button class="edit-profile-btn" onclick="openEditProfile()">تعديل الملف</button>
-                <button class="logout-btn" onclick="logout()">تسجيل خروج</button>
-            </div>
+            <div id="profileActions"></div>
         </div>
-        <div class="p-4">
-            <h4 class="mb-2">فيديوهاتي</h4>
-            <div id="profileVideosList" class="videos-grid"></div>
-        </div>
-        <i class="fas fa-arrow-right absolute top-5 right-5 text-2xl cursor-pointer" onclick="closeProfile()"></i>
+        <div class="p-4"><h4 class="mb-3 font-bold">فيديوهاتي</h4><div id="profileVideosList" class="videos-grid"></div></div>
     </div>
 
-    <!-- لوحة تعديل الملف الشخصي -->
     <div id="editProfilePanel" class="edit-profile-panel">
-        <div class="flex justify-between items-center mb-4"><h3>تعديل الملف الشخصي</h3><i class="fas fa-times cursor-pointer" onclick="closeEditProfile()"></i></div>
-        <input type="text" id="editUsername" class="edit-input" placeholder="اسم المستخدم">
-        <textarea id="editBio" class="edit-input" rows="3" placeholder="السيرة الذاتية"></textarea>
-        <button onclick="saveProfile()" class="w-full bg-[#fe2c55] p-3 rounded-xl mt-4">حفظ</button>
+        <div class="panel-header"><h3>تعديل الملف الشخصي</h3><button class="close-btn" onclick="closeEditProfile()"><i class="fas fa-times"></i></button></div>
+        <div class="avatar-upload text-center p-6" onclick="changeAvatar()"><div class="profile-avatar-large" id="editAvatarDisplay">👤</div><p class="text-xs text-gray-400 mt-2">اضغط لتغيير الصورة</p></div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        <div class="p-4"><input type="text" id="editUsername" class="edit-input" placeholder="اسم المستخدم"><textarea id="editBio" class="edit-input mt-3" rows="3" placeholder="السيرة الذاتية"></textarea><button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button></div>
     </div>
 </div>
 
