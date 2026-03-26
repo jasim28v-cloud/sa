@@ -1,19 +1,19 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyCVyQS6kuOBDyx_FXoGx6xgXxbbzjs5COg",
-    authDomain: "fokx-c135a.firebaseapp.com",
-    databaseURL: "https://fokx-c135a-default-rtdb.firebaseio.com",
-    projectId: "fokx-c135a",
-    storageBucket: "fokx-c135a.firebasestorage.app",
-    messagingSenderId: "447033620521",
-    appId: "1:447033620521:web:730fde0a59cb5624128438"
+    apiKey: "AIzaSyD7Cf_VMH1ACx1eweozlF9D26yw-pj9WcY",
+    authDomain: "gorm-b3316.firebaseapp.com",
+    databaseURL: "https://gorm-b3316-default-rtdb.firebaseio.com",
+    projectId: "gorm-b3316",
+    storageBucket: "gorm-b3316.firebasestorage.app",
+    messagingSenderId: "1092629474101",
+    appId: "1:1092629474101:web:d84a61f3cd80e6a83efa7c",
+    measurementId: "G-ZM7FTMWC0N"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
-const storage = firebase.storage();
 
-const CLOUD_NAME = 'dk5kas1gc';
-const UPLOAD_PRESET = 'go_kck';
+const CLOUD_NAME = 'dnillsbmi';
+const UPLOAD_PRESET = 'ekxzvogb';
 
-console.log('✅ tiktoki System Ready');
+console.log('✅ instagrami Ready');
