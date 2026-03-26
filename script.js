@@ -13,6 +13,10 @@ let allSounds = {};
 let isMuted = true;
 let viewingProfileUserId = null;
 let currentFeed = 'forYou';
+let currentChatUserId = null;
+let selectedVideoFile = null;
+let popularHashtags = ['تيك_توك', 'ترند', 'اكسبلور', 'فن', 'موسيقى', 'ضحك', 'رياضة', 'طبخ', 'سفر', 'تحدي'];
+let popularMusics = ['Original Sound', 'موسيقى هادئة', 'ريمكس ترند', 'أغنية جديدة', 'تيك توك ريمكس'];
 
 // ========== دوال المصادقة ==========
 function switchAuth(type) {
@@ -149,7 +153,6 @@ function renderVideos() {
                 <button class="side-btn" onclick="openShare('${video.url}')"><i class="fas fa-share"></i></button>
             </div>
         `;
-        // إضافة العلامة المائية
         const watermark = document.createElement('div');
         watermark.className = 'watermark';
         watermark.innerHTML = '<i class="fas fa-heart"></i> Tiktoki';
@@ -225,7 +228,6 @@ async function uploadAvatar(input) { const file = input.files[0]; if (!file) ret
 function playVideo(url) { window.open(url, '_blank'); }
 
 // ========== الدردشة الخاصة ==========
-let currentChatUserId = null;
 async function openConversations() { const panel = document.getElementById('conversationsPanel'); const container = document.getElementById('conversationsList'); const userId = currentUser.uid; const convSnap = await db.ref(`private_chats/${userId}`).once('value'); const conversations = convSnap.val() || {}; container.innerHTML = ''; for (const [otherId, convData] of Object.entries(conversations)) { const otherUser = allUsers[otherId]; if (!otherUser) continue; const lastMsg = convData.lastMessage || ''; container.innerHTML += `<div class="conversation-item" onclick="openPrivateChat('${otherId}')"><div class="conversation-avatar">${otherUser.avatarUrl ? `<img src="${otherUser.avatarUrl}">` : (otherUser.username?.charAt(0) || '👤')}</div><div class="conversation-info"><div class="conversation-name">@${otherUser.username}</div><div class="conversation-last-msg">${lastMsg.substring(0, 30)}</div></div></div>`; } if (container.innerHTML === '') container.innerHTML = '<div class="text-center text-gray-400 py-10">لا توجد محادثات بعد</div>'; panel.classList.add('open'); }
 function closeConversations() { document.getElementById('conversationsPanel').classList.remove('open'); }
 async function openPrivateChat(otherUserId) { currentChatUserId = otherUserId; const user = allUsers[otherUserId]; document.getElementById('chatUserName').innerText = `@${user?.username || 'مستخدم'}`; document.getElementById('chatAvatarDisplay').innerHTML = user?.avatarUrl ? `<img src="${user.avatarUrl}" class="w-full h-full object-cover rounded-full">` : (user?.username?.charAt(0) || '👤'); await loadPrivateMessages(otherUserId); document.getElementById('privateChatPanel').classList.add('open'); closeConversations(); }
@@ -238,10 +240,6 @@ function getChatId(uid1, uid2) { return uid1 < uid2 ? `${uid1}_${uid2}` : `${uid
 db.ref(`private_messages`).on('child_added', async (snapshot) => { const chatId = snapshot.key; if (currentChatUserId && chatId === getChatId(currentUser.uid, currentChatUserId)) await loadPrivateMessages(currentChatUserId); if (document.getElementById('conversationsPanel').classList.contains('open')) openConversations(); });
 
 // ========== رفع الفيديو المحسن ==========
-let selectedVideoFile = null;
-let popularHashtags = ['تيك_توك', 'ترند', 'اكسبلور', 'فن', 'موسيقى', 'ضحك', 'رياضة', 'طبخ', 'سفر', 'تحدي'];
-let popularMusics = ['Original Sound', 'موسيقى هادئة', 'ريمكس ترند', 'أغنية جديدة', 'تيك توك ريمكس'];
-
 function openUploadPanel() { document.getElementById('uploadPanel').classList.add('open'); resetUploadForm(); }
 function closeUploadPanel() { document.getElementById('uploadPanel').classList.remove('open'); resetUploadForm(); }
 function resetUploadForm() { selectedVideoFile = null; document.getElementById('videoPreview').style.display = 'none'; document.querySelector('.preview-placeholder').style.display = 'block'; document.getElementById('videoDescription').value = ''; document.getElementById('videoMusic').value = ''; document.getElementById('uploadProgressBar').style.display = 'none'; document.getElementById('uploadStatus').innerHTML = ''; document.getElementById('uploadSubmitBtn').classList.remove('disabled'); document.getElementById('uploadSubmitBtn').disabled = false; document.getElementById('videoFileInput').value = ''; }
