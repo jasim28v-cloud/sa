@@ -1,4 +1,3 @@
-// Firebase Configuration - استخدم هذه الإعدادات الجديدة
 const firebaseConfig = {
     apiKey: "AIzaSyBMKBnXRZ2mL5C2FYRih6NSpBIbebYeTBI",
     authDomain: "porn-dc411.firebaseapp.com",
@@ -14,8 +13,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// Cloudinary Configuration - استخدم هذه الإعدادات
+// Cloudinary Configuration
 const CLOUD_NAME = 'dnillsbmi';
 const UPLOAD_PRESET = 'ekxzvogb';
 
-console.log('✅ ECHO Platform Ready');
+console.log('✅ instagrami Ready');
