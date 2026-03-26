@@ -30,9 +30,9 @@ async function login() {
         await auth.signInWithEmailAndPassword(email, password);
         msg.innerText = '';
     } catch (error) {
-        if (error.code === 'auth/user-not-found') msg.innerText = 'لا يوجد حساب';
+        if (error.code === 'auth/user-not-found') msg.innerText = 'لا يوجد حساب بهذا البريد';
         else if (error.code === 'auth/wrong-password') msg.innerText = 'كلمة المرور غير صحيحة';
-        else msg.innerText = 'حدث خطأ';
+        else msg.innerText = 'حدث خطأ: ' + error.message;
     }
 }
 
@@ -51,8 +51,8 @@ async function register() {
         });
         msg.innerText = '';
     } catch (error) {
-        if (error.code === 'auth/email-already-in-use') msg.innerText = 'البريد مستخدم';
-        else msg.innerText = 'حدث خطأ';
+        if (error.code === 'auth/email-already-in-use') msg.innerText = 'البريد الإلكتروني مستخدم بالفعل';
+        else msg.innerText = 'حدث خطأ: ' + error.message;
     }
 }
 
@@ -195,7 +195,7 @@ async function openCommentsPost(postId) {
         });
         const post = allPosts.find(p => p.id === postId);
         if (post && post.sender !== currentUser.uid) await addNotification(post.sender, 'comment', currentUser.uid);
-        renderFeed(); // تحديث العرض
+        renderFeed();
     }
 }
 
