@@ -115,7 +115,7 @@ function addHashtags(text) {
 }
 function searchHashtag(tag) { document.getElementById('searchInput').value = '#' + tag; openSearch(); searchAll(); }
 
-// ========== عرض المنشورات ==========
+// ========== عرض المنشورات (جميع المنشورات) ==========
 db.ref('posts').on('value', (s) => {
     const data = s.val();
     if (!data) { allPosts = []; renderFeed(); return; }
@@ -320,9 +320,11 @@ async function loadProfileData(userId) {
     const userSnap = await db.ref(`users/${userId}`).get();
     const user = userSnap.val();
     if (!user) return;
+    // صورة الغلاف
     const coverEl = document.getElementById('profileCover');
     if (user.coverUrl) coverEl.style.background = `url(${user.coverUrl}) center/cover`;
     else coverEl.style.background = 'linear-gradient(135deg, #ec489a, #06b6d4)';
+    // صورة المستخدم
     const avatarEl = document.getElementById('profileAvatarDisplay');
     avatarEl.innerHTML = user.avatarUrl ? `<img src="${user.avatarUrl}">` : (user.username?.charAt(0) || '👤');
     document.getElementById('profileNameDisplay').innerText = user.username;
