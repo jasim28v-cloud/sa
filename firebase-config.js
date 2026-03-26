@@ -16,4 +16,4 @@ const storage = firebase.storage();
 const CLOUD_NAME = 'dk5kas1gc';
 const UPLOAD_PRESET = 'go_kck';
 
-console.log('✅ SHΔDØW System Ready');
+console.log('✅ Tiktoki System Ready');
