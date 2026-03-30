@@ -1,20 +1,25 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+import { getDatabase, ref, push, set, onValue, update, get, child, remove } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
 const firebaseConfig = {
-    apiKey: "AIzaSyBMKBnXRZ2mL5C2FYRih6NSpBIbebYeTBI",
-    authDomain: "porn-dc411.firebaseapp.com",
-    databaseURL: "https://porn-dc411-default-rtdb.firebaseio.com",
-    projectId: "porn-dc411",
-    storageBucket: "porn-dc411.firebasestorage.app",
-    messagingSenderId: "344117985586",
-    appId: "1:344117985586:web:d1064a4fd269983174572b",
-    measurementId: "G-CZ6E0V68WZ"
+    apiKey: "AIzaSyC8rvv7OihIJbTPz8wLNPPEURP6HeGXPos",
+    authDomain: "coco-989ec.firebaseapp.com",
+    databaseURL: "https://coco-989ec-default-rtdb.firebaseio.com",
+    projectId: "coco-989ec",
+    storageBucket: "coco-989ec.firebasestorage.app",
+    messagingSenderId: "476879537305",
+    appId: "1:476879537305:web:4bd41c433cb4a1efba6408"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getDatabase(app);
 
-// Cloudinary Configuration – باستخدام بياناتك الجديدة
-const CLOUD_NAME = 'dnillsbmi';
-const UPLOAD_PRESET = 'ekxzvogb';
+export { ref, push, set, onValue, update, get, child, remove };
 
-console.log('✅ instagrami Ready');
+// Cloudinary Configuration
+export const CLOUD_NAME = 'dnmpmysk6';
+export const UPLOAD_PRESET = 'do_2gg';
+
+console.log('✅ Firebase Ready');
